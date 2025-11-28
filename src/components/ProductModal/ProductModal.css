@@ -17,10 +17,11 @@
 .modal-content {
   background: white;
   border-radius: 15px;
-  max-width: 900px;
+  max-width: 95vw;
   width: 100%;
   max-height: 90vh;
   overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
   border: 1px solid #e0e0e0;
@@ -77,7 +78,7 @@
 
 .modal-body {
   display: grid;
-  grid-template-columns: 300px 1fr;
+  grid-template-columns: 1fr;
   gap: 30px;
   padding: 30px;
 }
@@ -422,6 +423,14 @@
 }
 
 /* Responsive */
+@media (max-width: 1200px) {
+  .modal-body {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 20px;
+  }
+}
+
 @media (max-width: 768px) {
   .modal-content {
     margin: 10px;
