@@ -14,21 +14,21 @@ router.get('/products', async (req, res) => {
         p.id,
         p.title,
         p.description,
-        p."basicPrice",
-        p."trainingPrice",
+        p.basicprice,
+        p.trainingprice,
         p.difficulty,
         p.sizes,
-        p."createdAt",
-        pf."filePath" as "imageUrl",
-        u."firstName" as "patronistaFirstName",
-        u."lastName" as "patronistaLastName",
-        c.name as "categoryName"
+        p.createdat,
+        pf.filepath as imageurl,
+        u.firstname as patronistafirstname,
+        u.lastname as patronistalastname,
+        c.name as categoryname
       FROM products p
-      LEFT JOIN users u ON p."patronistaId" = u.id
-      LEFT JOIN categories c ON p."categoryId" = c.id
-      LEFT JOIN product_files pf ON p.id = pf."productId" AND pf."fileType" = 'image'
+      LEFT JOIN users u ON p.patronistaid = u.id
+      LEFT JOIN categories c ON p.categoryid = c.id
+      LEFT JOIN product_files pf ON p.id = pf.productid AND pf.filetype = 'image'
       WHERE p.active = true
-      ORDER BY p."createdAt" DESC
+      ORDER BY p.createdat DESC
     `;
 
     const result = await pool.query(query);
@@ -39,8 +39,8 @@ router.get('/products', async (req, res) => {
       id: product.id,
       title: product.title,
       description: product.description,
-      basicPrice: product.basicPrice,
-      trainingPrice: product.trainingPrice,
+      basicPrice: product.basicprice,
+      trainingPrice: product.trainingprice,
       difficulty: product.difficulty,
       sizes: (() => {
         try {
@@ -51,10 +51,10 @@ router.get('/products', async (req, res) => {
           return product.sizes ? product.sizes.split(',').map(s => s.trim()) : [];
         }
       })(),
-      imageUrl: product.imageUrl,
-      patronista: `${product.patronistaFirstName || ''} ${product.patronistaLastName || ''}`.trim(),
-      category: product.categoryName,
-      createdAt: product.createdAt
+      imageUrl: product.imageurl,
+      patronista: `${product.patronistafirstname || ''} ${product.patronistalastname || ''}`.trim(),
+      category: product.categoryname,
+      createdAt: product.createdat
     }));
 
     res.json({
@@ -80,14 +80,14 @@ router.get('/products/:id', async (req, res) => {
     const query = `
       SELECT
         p.*,
-        pf."filePath" as "imageUrl",
-        u."firstName" as "patronistaFirstName",
-        u."lastName" as "patronistaLastName",
-        c.name as "categoryName"
+        pf.filepath as imageurl,
+        u.firstname as patronistafirstname,
+        u.lastname as patronistalastname,
+        c.name as categoryname
       FROM products p
-      LEFT JOIN users u ON p."patronistaId" = u.id
-      LEFT JOIN categories c ON p."categoryId" = c.id
-      LEFT JOIN product_files pf ON p.id = pf."productId" AND pf."fileType" = 'image'
+      LEFT JOIN users u ON p.patronistaid = u.id
+      LEFT JOIN categories c ON p.categoryid = c.id
+      LEFT JOIN product_files pf ON p.id = pf.productid AND pf.filetype = 'image'
       WHERE p.id = $1 AND p.active = true
     `;
 
@@ -106,8 +106,8 @@ router.get('/products/:id', async (req, res) => {
       id: product.id,
       title: product.title,
       description: product.description,
-      basicPrice: product.basicPrice,
-      trainingPrice: product.trainingPrice,
+      basicPrice: product.basicprice,
+      trainingPrice: product.trainingprice,
       difficulty: product.difficulty,
       sizes: (() => {
         try {
@@ -118,10 +118,10 @@ router.get('/products/:id', async (req, res) => {
           return product.sizes ? product.sizes.split(',').map(s => s.trim()) : [];
         }
       })(),
-      imageUrl: product.imageUrl,
-      patronista: `${product.patronistaFirstName || ''} ${product.patronistaLastName || ''}`.trim(),
-      category: product.categoryName,
-      createdAt: product.createdAt
+      imageUrl: product.imageurl,
+      patronista: `${product.patronistafirstname || ''} ${product.patronistalastname || ''}`.trim(),
+      category: product.categoryname,
+      createdAt: product.createdat
     };
 
     res.json({
