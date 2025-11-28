@@ -5,26 +5,23 @@ const { auth } = require('../middleware/auth');
 const router = express.Router();
 
 // Obtener perfil del usuario autenticado
-router.get('/profile', auth, (req, res) => {
+router.get('/profile', auth, async (req, res) => {
   try {
-    const db = database.getDb();
+    const pool = database.getPool();
 
-    db.get(
-      'SELECT id, firstName, lastName, email, role, phone, city, createdAt FROM users WHERE id = ?',
-      [req.user.userId],
-      (err, user) => {
-        if (err) {
-          console.error('Error obteniendo perfil:', err);
-          return res.status(500).json({ message: 'Error interno del servidor' });
-        }
+    const query = `
+      SELECT id, "firstName", "lastName", email, role, phone, city, "createdAt" 
+      FROM users 
+      WHERE id = $1
+    `;
+    const result = await pool.query(query, [req.user.userId]);
+    const user = result.rows[0];
 
-        if (!user) {
-          return res.status(404).json({ message: 'Usuario no encontrado' });
-        }
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
 
-        res.json(user);
-      }
-    );
+    res.json(user);
 
   } catch (error) {
     console.error('Error en GET /profile:', error);
@@ -33,7 +30,7 @@ router.get('/profile', auth, (req, res) => {
 });
 
 // Actualizar perfil del usuario
-router.put('/profile', auth, (req, res) => {
+router.put('/profile', auth, async (req, res) => {
   try {
     const { firstName, lastName, phone, city } = req.body;
     const userId = req.user.userId;
@@ -44,24 +41,21 @@ router.put('/profile', auth, (req, res) => {
       });
     }
 
-    const db = database.getDb();
+    const pool = database.getPool();
 
-    db.run(
-      'UPDATE users SET firstName = ?, lastName = ?, phone = ?, city = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
-      [firstName, lastName, phone, city, userId],
-      function(err) {
-        if (err) {
-          console.error('Error actualizando perfil:', err);
-          return res.status(500).json({ message: 'Error actualizando perfil' });
-        }
+    const query = `
+      UPDATE users 
+      SET "firstName" = $1, "lastName" = $2, phone = $3, city = $4, "updatedAt" = CURRENT_TIMESTAMP 
+      WHERE id = $5
+    `;
 
-        if (this.changes === 0) {
-          return res.status(404).json({ message: 'Usuario no encontrado' });
-        }
+    const result = await pool.query(query, [firstName, lastName, phone, city, userId]);
 
-        res.json({ message: 'Perfil actualizado exitosamente' });
-      }
-    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    res.json({ message: 'Perfil actualizado exitosamente' });
 
   } catch (error) {
     console.error('Error en PUT /profile:', error);

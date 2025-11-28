@@ -5,7 +5,7 @@ const { auth } = require('../middleware/auth');
 const router = express.Router();
 
 // Crear nuevo pedido
-router.post('/', auth, (req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
     const { items } = req.body; // Array de items con productId, optionType, price
     const clienteId = req.user.userId;
@@ -19,48 +19,36 @@ router.post('/', auth, (req, res) => {
     // Calcular total
     const total = items.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
 
-    const db = database.getDb();
+    const pool = database.getPool();
 
-    // Crear el pedido
-    db.run(
-      'INSERT INTO orders (clienteId, total) VALUES (?, ?)',
-      [clienteId, total],
-      function(err) {
-        if (err) {
-          console.error('Error creando pedido:', err);
-          return res.status(500).json({ message: 'Error creando pedido' });
-        }
+    try {
+      // Crear el pedido
+      const orderQuery = 'INSERT INTO orders ("clienteId", total) VALUES ($1, $2) RETURNING id';
+      const orderResult = await pool.query(orderQuery, [clienteId, total]);
+      const orderId = orderResult.rows[0].id;
 
-        const orderId = this.lastID;
-
-        // Insertar items del pedido
-        const itemPromises = items.map(item => {
-          return new Promise((resolve, reject) => {
-            db.run(
-              'INSERT INTO order_items (orderId, productId, optionType, price, quantity) VALUES (?, ?, ?, ?, ?)',
-              [orderId, item.productId, item.optionType, item.price, item.quantity || 1],
-              (err) => {
-                if (err) reject(err);
-                else resolve();
-              }
-            );
-          });
-        });
-
-        Promise.all(itemPromises)
-          .then(() => {
-            res.status(201).json({
-              message: 'Pedido creado exitosamente',
-              orderId: orderId,
-              total: total
-            });
-          })
-          .catch(err => {
-            console.error('Error insertando items del pedido:', err);
-            res.status(500).json({ message: 'Error procesando items del pedido' });
-          });
+      // Insertar items del pedido
+      const itemQuery = 'INSERT INTO order_items ("orderId", "productId", "optionType", price, quantity) VALUES ($1, $2, $3, $4, $5)';
+      
+      for (const item of items) {
+        await pool.query(itemQuery, [
+          orderId, 
+          item.productId, 
+          item.optionType, 
+          item.price, 
+          item.quantity || 1
+        ]);
       }
-    );
+
+      res.status(201).json({
+        message: 'Pedido creado exitosamente',
+        orderId: orderId,
+        total: total
+      });
+    } catch (error) {
+      console.error('Error en transacción de pedido:', error);
+      res.status(500).json({ message: 'Error procesando pedido' });
+    }
 
   } catch (error) {
     console.error('Error en POST /orders:', error);
@@ -69,39 +57,40 @@ router.post('/', auth, (req, res) => {
 });
 
 // Obtener pedidos del usuario autenticado
-router.get('/my-orders', auth, (req, res) => {
+router.get('/my-orders', auth, async (req, res) => {
   try {
     const userId = req.user.userId;
-    const db = database.getDb();
+    const pool = database.getPool();
 
     const query = `
       SELECT 
-        o.*,
-        GROUP_CONCAT(
-          json_object(
-            'productId', oi.productId,
+        o.id,
+        o."clienteId",
+        o.total,
+        o.status,
+        o."paymentMethod",
+        o."paymentId",
+        o."createdAt",
+        o."updatedAt",
+        json_agg(
+          json_build_object(
+            'productId', oi."productId",
             'productTitle', p.title,
-            'optionType', oi.optionType,
+            'optionType', oi."optionType",
             'price', oi.price,
             'quantity', oi.quantity
           )
         ) as items
       FROM orders o
-      LEFT JOIN order_items oi ON o.id = oi.orderId
-      LEFT JOIN products p ON oi.productId = p.id
-      WHERE o.clienteId = ?
+      LEFT JOIN order_items oi ON o.id = oi."orderId"
+      LEFT JOIN products p ON oi."productId" = p.id
+      WHERE o."clienteId" = $1
       GROUP BY o.id
-      ORDER BY o.createdAt DESC
+      ORDER BY o."createdAt" DESC
     `;
 
-    db.all(query, [userId], (err, orders) => {
-      if (err) {
-        console.error('Error obteniendo pedidos:', err);
-        return res.status(500).json({ message: 'Error interno del servidor' });
-      }
-
-      res.json(orders);
-    });
+    const result = await pool.query(query, [userId]);
+    res.json(result.rows);
 
   } catch (error) {
     console.error('Error en GET /my-orders:', error);
@@ -109,56 +98,43 @@ router.get('/my-orders', auth, (req, res) => {
   }
 });
 
-// Obtener pedidos del patronista (pedidos que incluyen sus productos)
-router.get('/patronista-orders', auth, (req, res) => {
+// Obtener pedido específico por ID
+router.get('/:orderId', auth, async (req, res) => {
   try {
-    const patronistaId = req.user.userId;
-    const db = database.getDb();
+    const { orderId } = req.params;
+    const userId = req.user.userId;
+    const pool = database.getPool();
 
     const query = `
-      SELECT DISTINCT
-        o.id,
-        o.clienteId,
-        o.total,
-        o.status,
-        o.paymentMethod,
-        o.createdAt,
-        o.updatedAt,
-        u.firstName as clientFirstName,
-        u.lastName as clientLastName,
-        u.email as clientEmail,
-        GROUP_CONCAT(
-          CASE 
-            WHEN p.patronistaId = ?
-            THEN json_object(
-              'productId', oi.productId,
-              'productTitle', p.title,
-              'optionType', oi.optionType,
-              'price', oi.price,
-              'quantity', oi.quantity
-            )
-          END
+      SELECT 
+        o.*,
+        json_agg(
+          json_build_object(
+            'productId', oi."productId",
+            'productTitle', p.title,
+            'optionType', oi."optionType",
+            'price', oi.price,
+            'quantity', oi.quantity
+          )
         ) as items
       FROM orders o
-      INNER JOIN order_items oi ON o.id = oi.orderId
-      INNER JOIN products p ON oi.productId = p.id
-      LEFT JOIN users u ON o.clienteId = u.id
-      WHERE p.patronistaId = ?
+      LEFT JOIN order_items oi ON o.id = oi."orderId"
+      LEFT JOIN products p ON oi."productId" = p.id
+      WHERE o.id = $1 AND o."clienteId" = $2
       GROUP BY o.id
-      ORDER BY o.createdAt DESC
     `;
 
-    db.all(query, [patronistaId, patronistaId], (err, orders) => {
-      if (err) {
-        console.error('Error obteniendo pedidos del patronista:', err);
-        return res.status(500).json({ message: 'Error interno del servidor' });
-      }
+    const result = await pool.query(query, [orderId, userId]);
+    const order = result.rows[0];
 
-      res.json(orders);
-    });
+    if (!order) {
+      return res.status(404).json({ message: 'Pedido no encontrado' });
+    }
+
+    res.json(order);
 
   } catch (error) {
-    console.error('Error en GET /patronista-orders:', error);
+    console.error('Error en GET /orders/:orderId:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });

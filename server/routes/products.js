@@ -5,32 +5,26 @@ const { auth, requirePatronista } = require('../middleware/auth');
 const router = express.Router();
 
 // Obtener todos los productos (público)
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const db = database.getDb();
+    const pool = database.getPool();
     
     // Query básico para obtener productos activos
     const query = `
       SELECT 
         p.*,
-        u.firstName as patronistaFirstName,
-        u.lastName as patronistaLastName,
-        c.name as categoryName
+        u."firstName" as "patronistaFirstName",
+        u."lastName" as "patronistaLastName",
+        c.name as "categoryName"
       FROM products p
-      LEFT JOIN users u ON p.patronistaId = u.id
-      LEFT JOIN categories c ON p.categoryId = c.id
-      WHERE p.active = 1
-      ORDER BY p.createdAt DESC
+      LEFT JOIN users u ON p."patronistaId" = u.id
+      LEFT JOIN categories c ON p."categoryId" = c.id
+      WHERE p.active = true
+      ORDER BY p."createdAt" DESC
     `;
 
-    db.all(query, (err, products) => {
-      if (err) {
-        console.error('Error obteniendo productos:', err);
-        return res.status(500).json({ message: 'Error interno del servidor' });
-      }
-
-      res.json(products);
-    });
+    const result = await pool.query(query);
+    res.json(result.rows);
 
   } catch (error) {
     console.error('Error en GET /products:', error);
@@ -39,29 +33,23 @@ router.get('/', (req, res) => {
 });
 
 // Obtener productos del patronista autenticado (debe ir antes de /:id)
-router.get('/my-products', auth, requirePatronista, (req, res) => {
+router.get('/my-products', auth, requirePatronista, async (req, res) => {
   try {
     const patronistaId = req.user.userId;
-    const db = database.getDb();
+    const pool = database.getPool();
 
     const query = `
       SELECT 
         p.*,
-        c.name as categoryName
+        c.name as "categoryName"
       FROM products p
-      LEFT JOIN categories c ON p.categoryId = c.id
-      WHERE p.patronistaId = ?
-      ORDER BY p.createdAt DESC
+      LEFT JOIN categories c ON p."categoryId" = c.id
+      WHERE p."patronistaId" = $1
+      ORDER BY p."createdAt" DESC
     `;
 
-    db.all(query, [patronistaId], (err, products) => {
-      if (err) {
-        console.error('Error obteniendo mis productos:', err);
-        return res.status(500).json({ message: 'Error interno del servidor' });
-      }
-
-      res.json(products);
-    });
+    const result = await pool.query(query, [patronistaId]);
+    res.json(result.rows);
 
   } catch (error) {
     console.error('Error en GET /my-products:', error);
@@ -70,35 +58,31 @@ router.get('/my-products', auth, requirePatronista, (req, res) => {
 });
 
 // Obtener producto por ID
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const db = database.getDb();
+    const pool = database.getPool();
 
     const query = `
       SELECT 
         p.*,
-        u.firstName as patronistaFirstName,
-        u.lastName as patronistaLastName,
-        c.name as categoryName
+        u."firstName" as "patronistaFirstName",
+        u."lastName" as "patronistaLastName",
+        c.name as "categoryName"
       FROM products p
-      LEFT JOIN users u ON p.patronistaId = u.id
-      LEFT JOIN categories c ON p.categoryId = c.id
-      WHERE p.id = ? AND p.active = 1
+      LEFT JOIN users u ON p."patronistaId" = u.id
+      LEFT JOIN categories c ON p."categoryId" = c.id
+      WHERE p.id = $1 AND p.active = true
     `;
 
-    db.get(query, [id], (err, product) => {
-      if (err) {
-        console.error('Error obteniendo producto:', err);
-        return res.status(500).json({ message: 'Error interno del servidor' });
-      }
+    const result = await pool.query(query, [id]);
+    const product = result.rows[0];
 
-      if (!product) {
-        return res.status(404).json({ message: 'Producto no encontrado' });
-      }
+    if (!product) {
+      return res.status(404).json({ message: 'Producto no encontrado' });
+    }
 
-      res.json(product);
-    });
+    res.json(product);
 
   } catch (error) {
     console.error('Error en GET /products/:id:', error);
@@ -107,7 +91,7 @@ router.get('/:id', (req, res) => {
 });
 
 // Crear producto (solo patronistas)
-router.post('/', auth, requirePatronista, (req, res) => {
+router.post('/', auth, requirePatronista, async (req, res) => {
   try {
     const { title, description, categoryId, basicPrice, trainingPrice, difficulty, sizes } = req.body;
     const patronistaId = req.user.userId;
@@ -125,28 +109,29 @@ router.post('/', auth, requirePatronista, (req, res) => {
       });
     }
 
-    const db = database.getDb();
+    const pool = database.getPool();
 
     const query = `
-      INSERT INTO products (patronistaId, title, description, categoryId, basicPrice, trainingPrice, difficulty, sizes)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO products ("patronistaId", title, description, "categoryId", "basicPrice", "trainingPrice", difficulty, sizes)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id
     `;
 
-    db.run(
-      query,
-      [patronistaId, title, description, categoryId, basicPrice, trainingPrice, difficulty, JSON.stringify(sizes)],
-      function(err) {
-        if (err) {
-          console.error('Error creando producto:', err);
-          return res.status(500).json({ message: 'Error creando producto' });
-        }
+    const result = await pool.query(query, [
+      patronistaId, 
+      title, 
+      description, 
+      categoryId, 
+      basicPrice, 
+      trainingPrice, 
+      difficulty, 
+      JSON.stringify(sizes)
+    ]);
 
-        res.status(201).json({
-          message: 'Producto creado exitosamente',
-          productId: this.lastID
-        });
-      }
-    );
+    res.status(201).json({
+      message: 'Producto creado exitosamente',
+      productId: result.rows[0].id
+    });
 
   } catch (error) {
     console.error('Error en POST /products:', error);

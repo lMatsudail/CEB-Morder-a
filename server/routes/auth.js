@@ -26,70 +26,71 @@ router.post('/register', async (req, res) => {
 
     // FORZAR ROL "CLIENTE" - Solo admin puede asignar otros roles
     const role = 'cliente';
+    const pool = database.getPool();
 
-    const db = database.getDb();
+    try {
+      // Verificar si el usuario ya existe
+      const checkQuery = 'SELECT id FROM users WHERE email = $1';
+      const checkResult = await pool.query(checkQuery, [email]);
 
-    // Verificar si el usuario ya existe
-    db.get('SELECT id FROM users WHERE email = ?', [email], async (err, row) => {
-      if (err) {
-        console.error('Error verificando usuario existente:', err);
-        return res.status(500).json({ message: 'Error interno del servidor' });
-      }
-
-      if (row) {
+      if (checkResult.rows.length > 0) {
         return res.status(400).json({ 
           message: 'Ya existe un usuario con este correo electrónico' 
         });
       }
 
-      try {
-        // Encriptar contraseña
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+      // Encriptar contraseña
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        // Insertar usuario
-        db.run(
-          `INSERT INTO users (firstName, lastName, email, password, role, phone, city) 
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [firstName, lastName, email, hashedPassword, role, phone || null, city || null],
-          function(err) {
-            if (err) {
-              console.error('Error creando usuario:', err);
-              return res.status(500).json({ message: 'Error creando usuario' });
-            }
+      // Insertar usuario
+      const insertQuery = `
+        INSERT INTO users (firstName, lastName, email, password, role, phone, city) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING id
+      `;
+      
+      const result = await pool.query(insertQuery, [
+        firstName, 
+        lastName, 
+        email, 
+        hashedPassword, 
+        role, 
+        phone || null, 
+        city || null
+      ]);
 
-            // Crear token JWT
-            const token = jwt.sign(
-              { 
-                userId: this.lastID, 
-                email, 
-                role 
-              },
-              config.JWT.SECRET,
-              { expiresIn: '7d' }
-            );
+      const userId = result.rows[0].id;
 
-            // Respuesta exitosa
-            res.status(201).json({
-              message: 'Usuario creado exitosamente',
-              token,
-              user: {
-                id: this.lastID,
-                firstName,
-                lastName,
-                email,
-                role,
-                phone,
-                city
-              }
-            });
-          }
-        );
-      } catch (error) {
-        console.error('Error en el proceso de registro:', error);
-        res.status(500).json({ message: 'Error interno del servidor' });
-      }
-    });
+      // Crear token JWT
+      const token = jwt.sign(
+        { 
+          userId, 
+          email, 
+          role 
+        },
+        config.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      // Respuesta exitosa
+      res.status(201).json({
+        message: 'Usuario creado exitosamente',
+        token,
+        user: {
+          id: userId,
+          firstName,
+          lastName,
+          email,
+          role,
+          phone,
+          city
+        }
+      });
+    } catch (error) {
+      console.error('Error en el proceso de registro:', error);
+      res.status(500).json({ message: 'Error creando usuario' });
+    }
 
   } catch (error) {
     console.error('Error en registro:', error);
@@ -108,66 +109,58 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    const db = database.getDb();
+    const pool = database.getPool();
 
-    // Buscar usuario por email
-    db.get(
-      'SELECT * FROM users WHERE email = ?', 
-      [email], 
-      async (err, user) => {
-        if (err) {
-          console.error('Error buscando usuario:', err);
-          return res.status(500).json({ message: 'Error interno del servidor' });
-        }
+    try {
+      // Buscar usuario por email
+      const query = 'SELECT * FROM users WHERE email = $1';
+      const result = await pool.query(query, [email]);
+      const user = result.rows[0];
 
-        if (!user) {
-          return res.status(401).json({ 
-            message: 'Credenciales inválidas' 
-          });
-        }
-
-        try {
-          // Verificar contraseña
-          const passwordMatch = await bcrypt.compare(password, user.password);
-          
-          if (!passwordMatch) {
-            return res.status(401).json({ 
-              message: 'Credenciales inválidas' 
-            });
-          }
-
-          // Crear token JWT
-          const token = jwt.sign(
-            { 
-              userId: user.id, 
-              email: user.email, 
-              role: user.role 
-            },
-            config.JWT.SECRET,
-            { expiresIn: '7d' }
-          );
-
-          // Respuesta exitosa
-          res.json({
-            message: 'Inicio de sesión exitoso',
-            token,
-            user: {
-              id: user.id,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              email: user.email,
-              role: user.role,
-              phone: user.phone,
-              city: user.city
-            }
-          });
-
-        } catch (error) {
-          console.error('Error verificando contraseña:', error);
-          res.status(500).json({ message: 'Error interno del servidor' });
-        }
+      if (!user) {
+        return res.status(401).json({ 
+          message: 'Credenciales inválidas' 
+        });
       }
-    );
+
+      // Verificar contraseña
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      
+      if (!passwordMatch) {
+        return res.status(401).json({ 
+          message: 'Credenciales inválidas' 
+        });
+      }
+
+      // Crear token JWT
+      const token = jwt.sign(
+        { 
+          userId: user.id, 
+          email: user.email, 
+          role: user.role 
+        },
+        config.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      // Respuesta exitosa
+      res.json({
+        message: 'Inicio de sesión exitoso',
+        token,
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          phone: user.phone,
+          city: user.city
+        }
+      });
+    } catch (error) {
+      console.error('Error verificando credenciales:', error);
+      res.status(500).json({ message: 'Error interno del servidor' });
+    }
 
   } catch (error) {
     console.error('Error en login:', error);
@@ -176,26 +169,23 @@ router.post('/login', async (req, res) => {
 });
 
 // Obtener usuario actual (requiere autenticación)
-router.get('/me', require('../middleware/auth').auth, (req, res) => {
+router.get('/me', require('../middleware/auth').auth, async (req, res) => {
   try {
-    const db = database.getDb();
+    const pool = database.getPool();
 
-    db.get(
-      'SELECT id, firstName, lastName, email, role, phone, city, createdAt FROM users WHERE id = ?',
-      [req.user.userId],
-      (err, user) => {
-        if (err) {
-          console.error('Error obteniendo usuario:', err);
-          return res.status(500).json({ message: 'Error interno del servidor' });
-        }
+    const query = `
+      SELECT id, "firstName", "lastName", email, role, phone, city, "createdAt" 
+      FROM users 
+      WHERE id = $1
+    `;
+    const result = await pool.query(query, [req.user.userId]);
+    const user = result.rows[0];
 
-        if (!user) {
-          return res.status(404).json({ message: 'Usuario no encontrado' });
-        }
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
 
-        res.json(user);
-      }
-    );
+    res.json(user);
 
   } catch (error) {
     console.error('Error en /me:', error);

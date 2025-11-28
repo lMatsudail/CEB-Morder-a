@@ -8,24 +8,17 @@ const router = express.Router();
 router.use(auth, requireAdmin);
 
 // GET /api/admin/users - Obtener todos los usuarios
-router.get('/users', (req, res) => {
+router.get('/users', async (req, res) => {
   try {
-    const db = database.getDb();
+    const pool = database.getPool();
 
-    db.all(
-      `SELECT id, firstName, lastName, email, role, phone, city, createdAt 
-       FROM users 
-       ORDER BY createdAt DESC`,
-      [],
-      (err, users) => {
-        if (err) {
-          console.error('Error obteniendo usuarios:', err);
-          return res.status(500).json({ message: 'Error interno del servidor' });
-        }
+    const result = await pool.query(`
+      SELECT id, "firstName", "lastName", email, role, phone, city, "createdAt" 
+      FROM users 
+      ORDER BY "createdAt" DESC
+    `);
 
-        res.json(users);
-      }
-    );
+    res.json(result.rows);
   } catch (error) {
     console.error('Error en GET /admin/users:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
@@ -33,29 +26,22 @@ router.get('/users', (req, res) => {
 });
 
 // GET /api/admin/users/:id - Obtener un usuario específico
-router.get('/users/:id', (req, res) => {
+router.get('/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const db = database.getDb();
+    const pool = database.getPool();
 
-    db.get(
-      `SELECT id, firstName, lastName, email, role, phone, city, createdAt, updatedAt 
-       FROM users 
-       WHERE id = ?`,
-      [id],
-      (err, user) => {
-        if (err) {
-          console.error('Error obteniendo usuario:', err);
-          return res.status(500).json({ message: 'Error interno del servidor' });
-        }
+    const result = await pool.query(`
+      SELECT id, "firstName", "lastName", email, role, phone, city, "createdAt", "updatedAt" 
+      FROM users 
+      WHERE id = $1
+    `, [id]);
 
-        if (!user) {
-          return res.status(404).json({ message: 'Usuario no encontrado' });
-        }
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
 
-        res.json(user);
-      }
-    );
+    res.json(result.rows[0]);
   } catch (error) {
     console.error('Error en GET /admin/users/:id:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
@@ -63,7 +49,7 @@ router.get('/users/:id', (req, res) => {
 });
 
 // PUT /api/admin/users/:id/role - Cambiar el rol de un usuario
-router.put('/users/:id/role', (req, res) => {
+router.put('/users/:id/role', async (req, res) => {
   try {
     const { id } = req.params;
     const { role } = req.body;
@@ -82,40 +68,23 @@ router.put('/users/:id/role', (req, res) => {
       });
     }
 
-    const db = database.getDb();
+    const pool = database.getPool();
 
     // Actualizar rol
-    db.run(
-      'UPDATE users SET role = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
-      [role, id],
-      function(err) {
-        if (err) {
-          console.error('Error actualizando rol:', err);
-          return res.status(500).json({ message: 'Error interno del servidor' });
-        }
-
-        if (this.changes === 0) {
-          return res.status(404).json({ message: 'Usuario no encontrado' });
-        }
-
-        // Obtener usuario actualizado
-        db.get(
-          'SELECT id, firstName, lastName, email, role, phone, city, createdAt, updatedAt FROM users WHERE id = ?',
-          [id],
-          (err, user) => {
-            if (err) {
-              console.error('Error obteniendo usuario actualizado:', err);
-              return res.status(500).json({ message: 'Error interno del servidor' });
-            }
-
-            res.json({
-              message: 'Rol actualizado exitosamente',
-              user
-            });
-          }
-        );
-      }
+    const result = await pool.query(
+      'UPDATE users SET role = $1, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, "firstName", "lastName", email, role, phone, city, "createdAt", "updatedAt"',
+      [role, id]
     );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    res.json({
+      message: 'Rol actualizado exitosamente',
+      user: result.rows[0]
+    });
+
   } catch (error) {
     console.error('Error en PUT /admin/users/:id/role:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
@@ -123,80 +92,45 @@ router.put('/users/:id/role', (req, res) => {
 });
 
 // GET /api/admin/stats - Obtener estadísticas del sistema
-router.get('/stats', (req, res) => {
+router.get('/stats', async (req, res) => {
   try {
-    const db = database.getDb();
+    const pool = database.getPool();
 
     // Contar usuarios por rol
-    db.all(
-      'SELECT role, COUNT(*) as count FROM users GROUP BY role',
-      [],
-      (err, roleCounts) => {
-        if (err) {
-          console.error('Error obteniendo estadísticas de roles:', err);
-          return res.status(500).json({ message: 'Error interno del servidor' });
-        }
+    const roleCounts = await pool.query('SELECT role, COUNT(*) as count FROM users GROUP BY role');
 
-        // Contar productos totales
-        db.get(
-          'SELECT COUNT(*) as count FROM products',
-          [],
-          (err, productCount) => {
-            if (err) {
-              console.error('Error contando productos:', err);
-              return res.status(500).json({ message: 'Error interno del servidor' });
-            }
+    // Contar productos totales
+    const productCount = await pool.query('SELECT COUNT(*) as count FROM products');
 
-            // Contar pedidos por estado
-            db.all(
-              'SELECT status, COUNT(*) as count FROM orders GROUP BY status',
-              [],
-              (err, orderCounts) => {
-                if (err) {
-                  console.error('Error obteniendo estadísticas de pedidos:', err);
-                  return res.status(500).json({ message: 'Error interno del servidor' });
-                }
+    // Contar pedidos por estado
+    const orderCounts = await pool.query('SELECT status, COUNT(*) as count FROM orders GROUP BY status');
 
-                // Calcular ingresos totales
-                db.get(
-                  'SELECT SUM(total) as total FROM orders WHERE status IN ("paid", "completed")',
-                  [],
-                  (err, revenue) => {
-                    if (err) {
-                      console.error('Error calculando ingresos:', err);
-                      return res.status(500).json({ message: 'Error interno del servidor' });
-                    }
+    // Calcular ingresos totales
+    const revenue = await pool.query('SELECT SUM(total) as total FROM orders WHERE status IN ($1, $2)', ['paid', 'completed']);
 
-                    res.json({
-                      users: {
-                        total: roleCounts.reduce((sum, r) => sum + r.count, 0),
-                        byRole: roleCounts.reduce((obj, r) => {
-                          obj[r.role] = r.count;
-                          return obj;
-                        }, {})
-                      },
-                      products: {
-                        total: productCount.count
-                      },
-                      orders: {
-                        total: orderCounts.reduce((sum, o) => sum + o.count, 0),
-                        byStatus: orderCounts.reduce((obj, o) => {
-                          obj[o.status] = o.count;
-                          return obj;
-                        }, {})
-                      },
-                      revenue: {
-                        total: revenue.total || 0
-                      }
-                    });
-                  }
-                );
-              }
-            );
-          }
-        );
+    res.json({
+      users: {
+        total: roleCounts.rows.reduce((sum, r) => sum + parseInt(r.count), 0),
+        byRole: roleCounts.rows.reduce((obj, r) => {
+          obj[r.role] = parseInt(r.count);
+          return obj;
+        }, {})
+      },
+      products: {
+        total: parseInt(productCount.rows[0].count)
+      },
+      orders: {
+        total: orderCounts.rows.reduce((sum, o) => sum + parseInt(o.count), 0),
+        byStatus: orderCounts.rows.reduce((obj, o) => {
+          obj[o.status] = parseInt(o.count);
+          return obj;
+        }, {})
+      },
+      revenue: {
+        total: parseFloat(revenue.rows[0].total) || 0
       }
-    );
+    });
+
   } catch (error) {
     console.error('Error en GET /admin/stats:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
@@ -204,7 +138,7 @@ router.get('/stats', (req, res) => {
 });
 
 // DELETE /api/admin/users/:id - Eliminar un usuario (opcional, usar con precaución)
-router.delete('/users/:id', (req, res) => {
+router.delete('/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -215,32 +149,23 @@ router.delete('/users/:id', (req, res) => {
       });
     }
 
-    const db = database.getDb();
+    const pool = database.getPool();
 
     // Verificar que el usuario existe
-    db.get('SELECT id, role FROM users WHERE id = ?', [id], (err, user) => {
-      if (err) {
-        console.error('Error verificando usuario:', err);
-        return res.status(500).json({ message: 'Error interno del servidor' });
-      }
+    const checkResult = await pool.query('SELECT id, role FROM users WHERE id = $1', [id]);
 
-      if (!user) {
-        return res.status(404).json({ message: 'Usuario no encontrado' });
-      }
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
 
-      // Eliminar usuario
-      db.run('DELETE FROM users WHERE id = ?', [id], function(err) {
-        if (err) {
-          console.error('Error eliminando usuario:', err);
-          return res.status(500).json({ message: 'Error interno del servidor' });
-        }
+    // Eliminar usuario (CASCADE eliminará sus productos, pedidos, etc.)
+    await pool.query('DELETE FROM users WHERE id = $1', [id]);
 
-        res.json({
-          message: 'Usuario eliminado exitosamente',
-          deletedUserId: id
-        });
-      });
+    res.json({
+      message: 'Usuario eliminado exitosamente',
+      deletedUserId: parseInt(id)
     });
+
   } catch (error) {
     console.error('Error en DELETE /admin/users/:id:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
