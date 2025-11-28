@@ -172,6 +172,37 @@ const database = {
           [category.name, category.description]
         );
       }
+
+      // Insertar usuarios patronistas de ejemplo
+      const patronistas = [
+        { firstname: 'María', lastname: 'García', email: 'maria@molderia.com', password: '$2a$10$YourHashedPasswordHere', role: 'patronista', phone: '1234567890', city: 'Buenos Aires' },
+        { firstname: 'Carlos', lastname: 'López', email: 'carlos@molderia.com', password: '$2a$10$YourHashedPasswordHere', role: 'patronista', phone: '0987654321', city: 'Madrid' }
+      ];
+
+      for (const patronista of patronistas) {
+        await pool.query(
+          'INSERT INTO users (firstname, lastname, email, password, role, phone, city) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (email) DO NOTHING',
+          [patronista.firstname, patronista.lastname, patronista.email, patronista.password, patronista.role, patronista.phone, patronista.city]
+        );
+      }
+
+      // Insertar productos de ejemplo
+      const products = [
+        { patronistaid: 1, title: 'Vestido Casual Elegante', description: 'Molde de vestido casual con corte elegante y ajustable', categoryid: 1, basicprice: 25.00, trainingprice: 40.00, difficulty: 'Intermedio', sizes: '["XS", "S", "M", "L", "XL"]' },
+        { patronistaid: 1, title: 'Blusa Floral Moderna', description: 'Blusa con diseño floral moderno y mangas ajustables', categoryid: 2, basicprice: 18.00, trainingprice: 30.00, difficulty: 'Principiante', sizes: '["S", "M", "L"]' },
+        { patronistaid: 2, title: 'Pantalón Slim Fit', description: 'Pantalón slim fit con bolsillos laterales y cierre moderno', categoryid: 3, basicprice: 30.00, trainingprice: 45.00, difficulty: 'Intermedio', sizes: '["28", "30", "32", "34", "36"]' },
+        { patronistaid: 2, title: 'Falda Plisada Clásica', description: 'Falda plisada de corte clásico con cintura alta', categoryid: 4, basicprice: 22.00, trainingprice: 35.00, difficulty: 'Intermedio', sizes: '["XS", "S", "M", "L"]' },
+        { patronistaid: 1, title: 'Chaqueta Blazer Profesional', description: 'Chaqueta blazer de corte profesional para oficina', categoryid: 5, basicprice: 45.00, trainingprice: 60.00, difficulty: 'Avanzado', sizes: '["S", "M", "L", "XL"]' }
+      ];
+
+      for (const product of products) {
+        await pool.query(
+          'INSERT INTO products (patronistaid, title, description, categoryid, basicprice, trainingprice, difficulty, sizes, active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true) ON CONFLICT DO NOTHING',
+          [product.patronistaid, product.title, product.description, product.categoryid, product.basicprice, product.trainingprice, product.difficulty, product.sizes]
+        );
+      }
+
+      console.log('Datos de ejemplo insertados correctamente');
     } catch (error) {
       console.error('Error insertando datos de ejemplo:', error);
     }
