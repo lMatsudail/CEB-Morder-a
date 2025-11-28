@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 20px;
+  padding: 80px 20px 20px 20px;
   overflow-y: auto;
 }
 
@@ -52,7 +52,7 @@
 }
 
 .modal-header {
-  padding: 30px 30px 20px 30px;
+  padding: 25px 30px 20px 30px;
   border-bottom: 1px solid #e0e0e0;
   background: #ffffff;
 }
@@ -80,7 +80,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 30px;
-  padding: 30px;
+  padding: 25px 30px;
 }
 
 /* Sección de imagen */
@@ -348,7 +348,7 @@
 
 /* Footer del modal */
 .modal-footer {
-  padding: 20px 30px 30px 30px;
+  padding: 20px 30px 25px 30px;
   border-top: 1px solid #e0e0e0;
   display: flex;
   gap: 15px;
