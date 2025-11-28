@@ -4,7 +4,7 @@ require('dotenv').config();
 // Pool de conexiones a PostgreSQL
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: { rejectUnauthorized: false }, // Requerido para Render
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
