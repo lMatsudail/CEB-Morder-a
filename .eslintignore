@@ -1,0 +1,29 @@
+# Dependencias
+node_modules/
+package-lock.json
+
+# Build
+build/
+dist/
+public/
+
+# Archivos de configuración
+*.config.js
+*.min.js
+
+# Documentación
+*.md
+
+# Base de datos
+*.db
+*.sqlite
+
+# Logs
+*.log
+
+# Archivos de entorno
+.env*
+
+# Archivos temporales
+.cache/
+.temp/

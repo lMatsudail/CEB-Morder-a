@@ -1,0 +1,142 @@
+/* ============================================
+   IMPORTACIÓN DE IDENTIDAD DE MARCA CEB
+   ============================================ */
+@import './brand.css';
+
+/* ============================================
+   RESET GLOBAL
+   ============================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-medium);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--brand-white);
+  color: var(--brand-black);
+  line-height: 1.6;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+/* ============================================
+   ESTILOS PARA FORMULARIOS
+   ============================================ */
+.form-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-label {
+  display: block;
+  margin-bottom: var(--spacing-sm);
+  color: var(--brand-black);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: var(--font-size-sm);
+}
+
+.form-input {
+  width: 100%;
+  padding: 15px;
+  border: var(--border-width) solid var(--gray-border);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  background-color: var(--brand-white);
+  color: var(--brand-black);
+  transition: all var(--transition-base);
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-medium);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--brand-black);
+  box-shadow: 0 0 0 3px rgba(252, 200, 1, 0.2);
+}
+
+.form-input::placeholder {
+  color: var(--gray-disabled);
+}
+
+/* ============================================
+   GRID SYSTEM
+   ============================================ */
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-2xl);
+  margin: var(--spacing-3xl) 0;
+}
+
+.grid-item {
+  text-align: center;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+}
+
+/* ============================================
+   ICONOS
+   ============================================ */
+.icon-large {
+  font-size: 4rem;
+  color: var(--brand-yellow);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+.fade-in {
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   UTILIDADES ADICIONALES
+   ============================================ */
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.mt-1 { margin-top: var(--spacing-xs); }
+.mt-2 { margin-top: var(--spacing-sm); }
+.mt-3 { margin-top: var(--spacing-md); }
+.mt-4 { margin-top: var(--spacing-lg); }
+.mt-5 { margin-top: var(--spacing-xl); }
+
+.mb-1 { margin-bottom: var(--spacing-xs); }
+.mb-2 { margin-bottom: var(--spacing-sm); }
+.mb-3 { margin-bottom: var(--spacing-md); }
+.mb-4 { margin-bottom: var(--spacing-lg); }
+.mb-5 { margin-bottom: var(--spacing-xl); }
+
+.p-1 { padding: var(--spacing-xs); }
+.p-2 { padding: var(--spacing-sm); }
+.p-3 { padding: var(--spacing-md); }
+.p-4 { padding: var(--spacing-lg); }
+.p-5 { padding: var(--spacing-xl); }

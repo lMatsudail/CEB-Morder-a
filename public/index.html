@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <!-- Meta tags para SEO y compatibilidad -->
+    <meta name="description" content="Ecommerce especializado en moldería y patronaje de moda con OptiTex. Encuentra moldes únicos y capacitación personalizada." />
+    <meta name="keywords" content="moldería, patronaje, moda, OptiTex, moldes, capacitación, ecommerce" />
+    <meta name="author" content="CEB Moldería y Patronaje" />
+    
+    <!-- Open Graph para redes sociales -->
+    <meta property="og:title" content="CEB Moldería y Patronaje" />
+    <meta property="og:description" content="Ecommerce especializado en moldería y patronaje de moda con OptiTex" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="%PUBLIC_URL%/logo192.png" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="CEB Moldería y Patronaje" />
+    <meta name="twitter:description" content="Ecommerce especializado en moldería y patronaje de moda con OptiTex" />
+    
+    <!-- Apple específico -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="CEB Moldería" />
+    
+    <title>CEB Moldería y Patronaje - Moldes y Capacitación OptiTex</title>
+  </head>
+  <body>
+    <noscript>Necesitas activar JavaScript para ejecutar esta aplicación.</noscript>
+    <div id="root"></div>
+    <script>
+      // Suprimir completamente el error de ResizeObserver
+      const originalConsoleError = console.error;
+      console.error = function(...args) {
+        if (args[0] && typeof args[0] === 'string' && 
+            args[0].includes('ResizeObserver loop completed')) {
+          return; // Ignorar este error específico
+        }
+        originalConsoleError.apply(console, args);
+      };
+
+      // Interceptar errores globales
+      window.addEventListener('error', function(e) {
+        if (e.message && e.message.includes('ResizeObserver loop completed')) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      // Interceptar promesas rechazadas
+      window.addEventListener('unhandledrejection', function(e) {
+        if (e.reason && e.reason.message && 
+            e.reason.message.includes('ResizeObserver loop completed')) {
+          e.preventDefault();
+          return false;
+        }
+      });
+
+      // Parche para ResizeObserver
+      if (window.ResizeObserver) {
+        const OriginalResizeObserver = window.ResizeObserver;
+        window.ResizeObserver = class extends OriginalResizeObserver {
+          constructor(callback) {
+            const wrappedCallback = (entries, observer) => {
+              window.requestAnimationFrame(() => {
+                try {
+                  callback(entries, observer);
+                } catch (error) {
+                  if (!error.message.includes('ResizeObserver loop completed')) {
+                    throw error;
+                  }
+                }
+              });
+            };
+            super(wrappedCallback);
+          }
+        };
+      }
+    </script>
+  </body>
+</html>

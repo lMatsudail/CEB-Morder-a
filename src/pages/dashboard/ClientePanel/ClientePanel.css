@@ -1,0 +1,370 @@
+/* Estilos para el panel de clientes */
+.cliente-panel {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.panel-header {
+  background: var(--brand-black);
+  color: var(--brand-yellow);
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+  margin-bottom: 30px;
+  border: 2px solid var(--brand-yellow);
+}
+
+.panel-title {
+  font-size: 2em;
+  margin-bottom: 10px;
+  color: var(--brand-yellow);
+}
+
+.panel-subtitle {
+  opacity: 0.9;
+  color: var(--brand-yellow);
+}
+
+.cliente-tabs {
+  display: flex;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 15px 20px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.1em;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s;
+}
+
+.tab-button:first-child {
+  border-radius: 8px 0 0 0;
+}
+
+.tab-button:last-child {
+  border-radius: 0 8px 0 0;
+}
+
+.tab-button:hover {
+  background: #ffffff;
+}
+
+.tab-button.active {
+  color: var(--brand-yellow);
+  border-bottom-color: var(--brand-yellow);
+  background: var(--brand-black);
+}
+
+.tab-content {
+  background: white;
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.purchases-list {
+  margin-bottom: 30px;
+}
+
+.purchase-item {
+  border: 2px solid var(--brand-yellow);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 15px;
+  background: var(--brand-black);
+}
+
+.purchase-header {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.purchase-id {
+  font-weight: bold;
+  color: var(--brand-yellow);
+}
+
+.purchase-date {
+  color: var(--brand-yellow);
+  opacity: 0.9;
+}
+
+.purchase-status {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: bold;
+}
+
+.status-completed {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-processing {
+  background: #cce5ff;
+  color: #000000;
+}
+
+.purchase-products {
+  margin-bottom: 15px;
+}
+
+.product-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--brand-yellow);
+}
+
+.product-row:last-child {
+  border-bottom: none;
+}
+
+.product-image {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-right: 15px;
+}
+
+.product-details {
+  flex: 1;
+}
+
+.product-name {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: var(--brand-yellow);
+}
+
+.product-option {
+  color: var(--brand-yellow);
+  font-size: 0.9em;
+  opacity: 0.9;
+}
+
+.product-price {
+  color: var(--brand-yellow);
+  font-weight: bold;
+}
+
+.purchase-total {
+  text-align: right;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: var(--brand-yellow);
+  border-top: 2px solid var(--brand-yellow);
+  padding-top: 10px;
+}
+
+.download-section {
+  background: var(--brand-black);
+  border: 2px solid var(--brand-yellow);
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 15px;
+}
+
+.download-title {
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: var(--brand-yellow);
+}
+
+.download-files {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.download-button {
+  background: var(--brand-yellow);
+  color: var(--brand-black);
+  border: 2px solid var(--brand-black);
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 0.9em;
+  font-weight: var(--font-weight-semibold);
+}
+
+.download-button:hover {
+  background: var(--brand-black);
+  color: var(--brand-yellow);
+  border-color: var(--brand-yellow);
+}
+
+.training-sessions {
+  margin-top: 30px;
+}
+
+.session-item {
+  background: #fff3e0;
+  border: 1px solid #ffcc80;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 15px;
+}
+
+.session-header {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.session-title {
+  font-weight: bold;
+  color: #e65100;
+}
+
+.session-status {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: bold;
+  background: #ffe0b2;
+  color: #e65100;
+}
+
+.session-details {
+  color: #000000;
+  line-height: 1.5;
+}
+
+.session-actions {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn-join {
+  background: #ff9800;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-join:hover {
+  background: #f57c00;
+}
+
+.btn-reschedule {
+  background: #000000;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-reschedule:hover {
+  background: #545b62;
+}
+
+.profile-form {
+  max-width: 600px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ffffff;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.form-group textarea {
+  height: 100px;
+  resize: vertical;
+}
+
+.btn-save {
+  background: #fcc801;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.1em;
+}
+
+.btn-save:hover {
+  background: #fcc801;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #000000;
+}
+
+.empty-state-icon {
+  font-size: 3em;
+  margin-bottom: 15px;
+  opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+  .cliente-tabs {
+    flex-direction: column;
+  }
+  
+  .tab-button {
+    border-radius: 0 !important;
+    border-bottom: 1px solid #ffffff;
+    border-right: none;
+  }
+  
+  .tab-button.active {
+    border-bottom-color: #ffffff;
+    border-left: 3px solid #fcc801;
+  }
+  
+  .purchase-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .session-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .session-actions {
+    flex-direction: column;
+  }
+}
