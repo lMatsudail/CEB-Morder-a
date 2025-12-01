@@ -5,7 +5,6 @@ import './Home.css';
 
 const Home = () => {
   const heroParallax = useParallax(0.5);
-  const featuresParallax = useParallax(0.3);
   const pricingParallax = useParallax(0.2);
 
   // URLs de imágenes de Cloudinary
@@ -105,13 +104,6 @@ const Home = () => {
 
       {/* Features Section */}
       <section className="features">
-        <div 
-          className="features-background" 
-          style={{ 
-            transform: `translateY(${featuresParallax}px)`,
-            backgroundImage: `url(${images.features})`
-          }}
-        />
         <div className="container">
           <h2 className="section-title">¿Por qué elegir CEB Moldería?</h2>
           <div className="features-grid">
