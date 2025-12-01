@@ -18,6 +18,8 @@ const AdminPanel = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [newRole, setNewRole] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   useEffect(() => {
     // Verificar que el usuario sea admin
@@ -78,6 +80,44 @@ const AdminPanel = () => {
     } catch (error) {
       console.error('Error cambiando rol:', error);
       setError(error.message || 'Error cambiando rol de usuario');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = (userItem) => {
+    // No permitir eliminar el usuario actual
+    if (user.userId === userItem.id) {
+      setError('No puedes eliminar tu propia cuenta');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    setUserToDelete(userItem);
+    setShowDeleteModal(true);
+    setError('');
+    setSuccessMessage('');
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    try {
+      setLoading(true);
+      await adminService.deleteUser(userToDelete.id);
+      
+      setSuccessMessage(`Usuario ${userToDelete.firstname} ${userToDelete.lastname} eliminado exitosamente`);
+      setShowDeleteModal(false);
+      setUserToDelete(null);
+      
+      // Recargar datos
+      await loadData();
+      
+      // Limpiar mensaje después de 3 segundos
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error) {
+      console.error('Error eliminando usuario:', error);
+      setError(error.message || 'Error eliminando usuario');
     } finally {
       setLoading(false);
     }
@@ -299,13 +339,24 @@ const AdminPanel = () => {
                       <td>{userItem.phone || '-'}</td>
                       <td>{userItem.city || '-'}</td>
                       <td>
-                        <button
-                          className="btn-action btn-edit"
-                          onClick={() => handleChangeRole(userItem)}
-                          disabled={loading}
-                        >
-                          Cambiar Rol
-                        </button>
+                        <div className="action-buttons">
+                          <button
+                            className="btn-action btn-edit"
+                            onClick={() => handleChangeRole(userItem)}
+                            disabled={loading}
+                            title="Cambiar rol del usuario"
+                          >
+                            Cambiar Rol
+                          </button>
+                          <button
+                            className="btn-action btn-delete"
+                            onClick={() => handleDeleteUser(userItem)}
+                            disabled={loading || user.userId === userItem.id}
+                            title={user.userId === userItem.id ? 'No puedes eliminarte a ti mismo' : 'Eliminar usuario'}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -394,7 +445,59 @@ const AdminPanel = () => {
         )}
       </div>
 
-      {/* Resto del código: Modal para cambiar rol */}
+      {/* Modal para eliminar usuario */}
+      {showDeleteModal && userToDelete && (
+        <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="modal-content modal-delete" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>⚠️ Confirmar Eliminación</h3>
+              <button className="modal-close" onClick={() => setShowDeleteModal(false)}>
+                ×
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="warning-message">
+                <p>¿Estás seguro de que deseas eliminar a este usuario?</p>
+                <p className="warning-text">Esta acción es <strong>irreversible</strong> y eliminará:</p>
+                <ul className="warning-list">
+                  <li>Todos los datos del usuario</li>
+                  <li>Sus productos publicados</li>
+                  <li>Su historial de pedidos</li>
+                  <li>Cualquier otro dato relacionado</li>
+                </ul>
+              </div>
+
+              <div className="user-info delete-info">
+                <p><strong>Usuario:</strong> {userToDelete.firstname} {userToDelete.lastname}</p>
+                <p><strong>Email:</strong> {userToDelete.email}</p>
+                <p><strong>Rol:</strong> <span className={`role-badge ${getRoleBadgeClass(userToDelete.role)}`}>
+                  {getRoleText(userToDelete.role)}
+                </span></p>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setShowDeleteModal(false)}
+                disabled={loading}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="btn btn-danger" 
+                onClick={confirmDeleteUser}
+                disabled={loading}
+              >
+                {loading ? 'Eliminando...' : 'Sí, Eliminar Usuario'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para cambiar rol */}
       {showModal && selectedUser && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
