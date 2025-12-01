@@ -14,21 +14,21 @@ router.get('/products', async (req, res) => {
         p.id,
         p.title,
         p.description,
-        p.basicprice,
-        p.trainingprice,
+        p."basicPrice",
+        p."trainingPrice",
         p.difficulty,
         p.sizes,
-        p.createdat,
-        pf.filepath as imageurl,
-        u.firstname as patronistafirstname,
-        u.lastname as patronistalastname,
+        p."createdAt",
+        pf."filePath" as imageurl,
+        u."firstName" as patronistafirstname,
+        u."lastName" as patronistalastname,
         c.name as categoryname
       FROM products p
-      LEFT JOIN users u ON p.patronistaid = u.id
-      LEFT JOIN categories c ON p.categoryid = c.id
-      LEFT JOIN product_files pf ON p.id = pf.productid AND pf.filetype = 'image'
+      LEFT JOIN users u ON p."patronistaId" = u.id
+      LEFT JOIN categories c ON p."categoryId" = c.id
+      LEFT JOIN product_files pf ON p.id = pf."productId" AND pf."fileType" = 'image'
       WHERE p.active = true
-      ORDER BY p.createdat DESC
+      ORDER BY p."createdAt" DESC
     `;
 
     const result = await pool.query(query);
@@ -80,14 +80,14 @@ router.get('/products/:id', async (req, res) => {
     const query = `
       SELECT
         p.*,
-        pf.filepath as imageurl,
-        u.firstname as patronistafirstname,
-        u.lastname as patronistalastname,
+        pf."filePath" as imageurl,
+        u."firstName" as patronistafirstname,
+        u."lastName" as patronistalastname,
         c.name as categoryname
       FROM products p
-      LEFT JOIN users u ON p.patronistaid = u.id
-      LEFT JOIN categories c ON p.categoryid = c.id
-      LEFT JOIN product_files pf ON p.id = pf.productid AND pf.filetype = 'image'
+      LEFT JOIN users u ON p."patronistaId" = u.id
+      LEFT JOIN categories c ON p."categoryId" = c.id
+      LEFT JOIN product_files pf ON p.id = pf."productId" AND pf."fileType" = 'image'
       WHERE p.id = $1 AND p.active = true
     `;
 
