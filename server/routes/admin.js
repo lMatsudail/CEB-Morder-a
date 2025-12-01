@@ -231,56 +231,56 @@ router.get('/products', async (req, res) => {
         p.id,
         p.title,
         p.description,
-        p."basicPrice",
-        p."trainingPrice",
+        p.basicprice,
+        p.trainingprice,
         p.difficulty,
         p.sizes,
         p.active,
-        p."createdAt",
-        p."updatedAt",
+        p.createdat,
+        p.updatedat,
         -- Información del patronista
-        p."patronistaId",
-        u."firstName" as patronista_firstname,
-        u."lastName" as patronista_lastname,
+        p.patronistaid,
+        u.firstname as patronista_firstname,
+        u.lastname as patronista_lastname,
         u.email as patronista_email,
         -- Información de categoría
-        p."categoryId",
+        p.categoryid,
         c.name as category_name,
         -- Imágenes
         (
           SELECT json_agg(
             json_build_object(
               'id', pf.id,
-              'url', pf."filePath",
-              'filename', pf."fileName"
+              'url', pf.filepath,
+              'filename', pf.filename
             )
           )
           FROM product_files pf
-          WHERE pf."productId" = p.id AND pf."fileType" = 'image'
+          WHERE pf.productid = p.id AND pf.filetype = 'image'
         ) as images,
         -- Archivos de molde
         (
           SELECT json_agg(
             json_build_object(
               'id', pf.id,
-              'filename', pf."fileName",
-              'filepath', pf."filePath",
-              'originalname', pf."originalName"
+              'filename', pf.filename,
+              'filepath', pf.filepath,
+              'originalname', pf.originalname
             )
           )
           FROM product_files pf
-          WHERE pf."productId" = p.id AND pf."fileType" = 'pattern'
+          WHERE pf.productid = p.id AND pf.filetype = 'pattern'
         ) as pattern_files,
         -- Estadísticas de ventas
         (
           SELECT COUNT(*)
           FROM order_items oi
-          WHERE oi."productId" = p.id
+          WHERE oi.productid = p.id
         ) as total_sales
       FROM products p
-      INNER JOIN users u ON p."patronistaId" = u.id
-      LEFT JOIN categories c ON p."categoryId" = c.id
-      ORDER BY p."createdAt" DESC
+      INNER JOIN users u ON p.patronistaid = u.id
+      LEFT JOIN categories c ON p.categoryid = c.id
+      ORDER BY p.createdat DESC
     `);
 
     res.json(result.rows);

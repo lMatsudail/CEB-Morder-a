@@ -51,16 +51,16 @@ const database = {
       // Tabla de usuarios
       `CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
-        "firstName" VARCHAR(100) NOT NULL,
-        "lastName" VARCHAR(100) NOT NULL,
+        firstname VARCHAR(100) NOT NULL,
+        lastname VARCHAR(100) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
         role VARCHAR(50) CHECK(role IN ('cliente', 'patronista', 'admin')) NOT NULL,
         phone VARCHAR(20),
         address VARCHAR(255),
         city VARCHAR(100),
-        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        createdat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedat TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )`,
 
       // Tabla de categorías
@@ -68,82 +68,82 @@ const database = {
         id SERIAL PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         description TEXT,
-        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        createdat TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )`,
 
       // Tabla de productos
       `CREATE TABLE IF NOT EXISTS products (
         id SERIAL PRIMARY KEY,
-        "patronistaId" INTEGER NOT NULL,
+        patronistaid INTEGER NOT NULL,
         title VARCHAR(255) NOT NULL,
         description TEXT,
-        "categoryId" INTEGER,
-        "basicPrice" DECIMAL(10,2) NOT NULL,
-        "trainingPrice" DECIMAL(10,2) NOT NULL,
+        categoryid INTEGER,
+        basicprice DECIMAL(10,2) NOT NULL,
+        trainingprice DECIMAL(10,2) NOT NULL,
         difficulty VARCHAR(50) CHECK(difficulty IN ('Principiante', 'Intermedio', 'Avanzado')),
         sizes TEXT,
         active BOOLEAN DEFAULT true,
-        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY ("patronistaId") REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY ("categoryId") REFERENCES categories(id) ON DELETE SET NULL
+        createdat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (patronistaid) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (categoryid) REFERENCES categories(id) ON DELETE SET NULL
       )`,
 
       // Tabla de archivos de productos
       `CREATE TABLE IF NOT EXISTS product_files (
         id SERIAL PRIMARY KEY,
-        "productId" INTEGER NOT NULL,
-        "fileName" VARCHAR(255) NOT NULL,
-        "originalName" VARCHAR(255) NOT NULL,
-        "filePath" VARCHAR(500) NOT NULL,
-        "fileType" VARCHAR(50) CHECK("fileType" IN ('image', 'pattern', 'document')),
-        "fileSize" INTEGER,
-        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY ("productId") REFERENCES products(id) ON DELETE CASCADE
+        productid INTEGER NOT NULL,
+        filename VARCHAR(255) NOT NULL,
+        originalname VARCHAR(255) NOT NULL,
+        filepath VARCHAR(500) NOT NULL,
+        filetype VARCHAR(50) CHECK(filetype IN ('image', 'pattern', 'document')),
+        filesize INTEGER,
+        createdat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (productid) REFERENCES products(id) ON DELETE CASCADE
       )`,
 
       // Tabla de pedidos
       `CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
-        "clienteId" INTEGER NOT NULL,
+        clienteid INTEGER NOT NULL,
         total DECIMAL(10,2) NOT NULL,
         status VARCHAR(50) CHECK(status IN ('pending', 'paid', 'completed', 'cancelled')) DEFAULT 'pending',
-        "paymentMethod" VARCHAR(100),
-        "paymentId" VARCHAR(255),
-        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY ("clienteId") REFERENCES users(id) ON DELETE CASCADE
+        paymentmethod VARCHAR(100),
+        paymentid VARCHAR(255),
+        createdat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (clienteid) REFERENCES users(id) ON DELETE CASCADE
       )`,
 
       // Tabla de items de pedidos
       `CREATE TABLE IF NOT EXISTS order_items (
         id SERIAL PRIMARY KEY,
-        "orderId" INTEGER NOT NULL,
-        "productId" INTEGER NOT NULL,
-        "optionType" VARCHAR(50) CHECK("optionType" IN ('basic', 'training')) NOT NULL,
+        orderid INTEGER NOT NULL,
+        productid INTEGER NOT NULL,
+        optiontype VARCHAR(50) CHECK(optiontype IN ('basic', 'training')) NOT NULL,
         price DECIMAL(10,2) NOT NULL,
         quantity INTEGER DEFAULT 1,
-        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY ("orderId") REFERENCES orders(id) ON DELETE CASCADE,
-        FOREIGN KEY ("productId") REFERENCES products(id) ON DELETE CASCADE
+        createdat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (orderid) REFERENCES orders(id) ON DELETE CASCADE,
+        FOREIGN KEY (productid) REFERENCES products(id) ON DELETE CASCADE
       )`,
 
       // Tabla de capacitaciones
       `CREATE TABLE IF NOT EXISTS trainings (
         id SERIAL PRIMARY KEY,
-        "orderItemId" INTEGER NOT NULL,
-        "patronistaId" INTEGER NOT NULL,
-        "clienteId" INTEGER NOT NULL,
-        "scheduledDate" TIMESTAMP,
+        orderitemid INTEGER NOT NULL,
+        patronistaid INTEGER NOT NULL,
+        clienteid INTEGER NOT NULL,
+        scheduleddate TIMESTAMP,
         duration INTEGER DEFAULT 60,
         status VARCHAR(50) CHECK(status IN ('scheduled', 'completed', 'cancelled')) DEFAULT 'scheduled',
         notes TEXT,
-        "meetingLink" VARCHAR(500),
-        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY ("orderItemId") REFERENCES order_items(id) ON DELETE CASCADE,
-        FOREIGN KEY ("patronistaId") REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY ("clienteId") REFERENCES users(id) ON DELETE CASCADE
+        meetinglink VARCHAR(500),
+        createdat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updatedat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (orderitemid) REFERENCES order_items(id) ON DELETE CASCADE,
+        FOREIGN KEY (patronistaid) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (clienteid) REFERENCES users(id) ON DELETE CASCADE
       )`
     ];
 
@@ -222,30 +222,30 @@ const database = {
 
       // Insertar usuarios patronistas de ejemplo (solo desarrollo)
       const patronistas = [
-        { firstName: 'María', lastName: 'García', email: 'maria@molderia.com', password: await bcrypt.hash('maria123', 10), role: 'patronista', phone: '1234567890', city: 'Buenos Aires' },
-        { firstName: 'Carlos', lastName: 'López', email: 'carlos@molderia.com', password: await bcrypt.hash('carlos123', 10), role: 'patronista', phone: '0987654321', city: 'Madrid' }
+        { firstname: 'María', lastname: 'García', email: 'maria@molderia.com', password: await bcrypt.hash('maria123', 10), role: 'patronista', phone: '1234567890', city: 'Buenos Aires' },
+        { firstname: 'Carlos', lastname: 'López', email: 'carlos@molderia.com', password: await bcrypt.hash('carlos123', 10), role: 'patronista', phone: '0987654321', city: 'Madrid' }
       ];
 
       for (const patronista of patronistas) {
         await pool.query(
-          'INSERT INTO users ("firstName", "lastName", email, password, role, phone, city) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (email) DO NOTHING',
-          [patronista.firstName, patronista.lastName, patronista.email, patronista.password, patronista.role, patronista.phone, patronista.city]
+          'INSERT INTO users (firstname, lastname, email, password, role, phone, city) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (email) DO NOTHING',
+          [patronista.firstname, patronista.lastname, patronista.email, patronista.password, patronista.role, patronista.phone, patronista.city]
         );
       }
 
       // Insertar productos de ejemplo
       const products = [
-        { patronistaId: 1, title: 'Vestido Casual Elegante', description: 'Molde de vestido casual con corte elegante y ajustable', categoryId: 1, basicPrice: 25.00, trainingPrice: 40.00, difficulty: 'Intermedio', sizes: '["XS", "S", "M", "L", "XL"]' },
-        { patronistaId: 1, title: 'Blusa Floral Moderna', description: 'Blusa con diseño floral moderno y mangas ajustables', categoryId: 2, basicPrice: 18.00, trainingPrice: 30.00, difficulty: 'Principiante', sizes: '["S", "M", "L"]' },
-        { patronistaId: 2, title: 'Pantalón Slim Fit', description: 'Pantalón slim fit con bolsillos laterales y cierre moderno', categoryId: 3, basicPrice: 30.00, trainingPrice: 45.00, difficulty: 'Intermedio', sizes: '["28", "30", "32", "34", "36"]' },
-        { patronistaId: 2, title: 'Falda Plisada Clásica', description: 'Falda plisada de corte clásico con cintura alta', categoryId: 4, basicPrice: 22.00, trainingPrice: 35.00, difficulty: 'Intermedio', sizes: '["XS", "S", "M", "L"]' },
-        { patronistaId: 1, title: 'Chaqueta Blazer Profesional', description: 'Chaqueta blazer de corte profesional para oficina', categoryId: 5, basicPrice: 45.00, trainingPrice: 60.00, difficulty: 'Avanzado', sizes: '["S", "M", "L", "XL"]' }
+        { patronistaid: 1, title: 'Vestido Casual Elegante', description: 'Molde de vestido casual con corte elegante y ajustable', categoryid: 1, basicprice: 25.00, trainingprice: 40.00, difficulty: 'Intermedio', sizes: '["XS", "S", "M", "L", "XL"]' },
+        { patronistaid: 1, title: 'Blusa Floral Moderna', description: 'Blusa con diseño floral moderno y mangas ajustables', categoryid: 2, basicprice: 18.00, trainingprice: 30.00, difficulty: 'Principiante', sizes: '["S", "M", "L"]' },
+        { patronistaid: 2, title: 'Pantalón Slim Fit', description: 'Pantalón slim fit con bolsillos laterales y cierre moderno', categoryid: 3, basicprice: 30.00, trainingprice: 45.00, difficulty: 'Intermedio', sizes: '["28", "30", "32", "34", "36"]' },
+        { patronistaid: 2, title: 'Falda Plisada Clásica', description: 'Falda plisada de corte clásico con cintura alta', categoryid: 4, basicprice: 22.00, trainingprice: 35.00, difficulty: 'Intermedio', sizes: '["XS", "S", "M", "L"]' },
+        { patronistaid: 1, title: 'Chaqueta Blazer Profesional', description: 'Chaqueta blazer de corte profesional para oficina', categoryid: 5, basicprice: 45.00, trainingprice: 60.00, difficulty: 'Avanzado', sizes: '["S", "M", "L", "XL"]' }
       ];
 
       for (const product of products) {
         await pool.query(
-          'INSERT INTO products ("patronistaId", title, description, "categoryId", "basicPrice", "trainingPrice", difficulty, sizes, active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true) ON CONFLICT DO NOTHING',
-          [product.patronistaId, product.title, product.description, product.categoryId, product.basicPrice, product.trainingPrice, product.difficulty, product.sizes]
+          'INSERT INTO products (patronistaid, title, description, categoryid, basicprice, trainingprice, difficulty, sizes, active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true) ON CONFLICT DO NOTHING',
+          [product.patronistaid, product.title, product.description, product.categoryid, product.basicprice, product.trainingprice, product.difficulty, product.sizes]
         );
       }
 
