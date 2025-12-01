@@ -2,13 +2,17 @@ import React, { useState } from 'react';
 import { useCart } from '../../../context/CartContext';
 import { useAuth } from '../../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import './Cart.css';
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, clearCart, getCartTotal } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState(null);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-CO', {
@@ -34,27 +38,46 @@ const Cart = () => {
     }
 
     setIsProcessing(true);
+    setError(null);
     
     try {
-      // Simular proceso de checkout (aquí se integrará con el backend)
-      const orderData = {
-        items: cartItems,
-        total: getCartTotal(),
-        userId: user.id,
-        date: new Date().toISOString()
-      };
-      
-      // Simular delay de procesamiento
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Limpiar carrito después del checkout exitoso
-      clearCart();
-      
-      // Redirigir a página de confirmación
-      navigate('/order-confirmation', { state: { order: orderData } });
+      // Preparar items para el backend
+      const items = cartItems.map(item => ({
+        productId: item.productId,
+        optionType: item.option.type,
+        price: item.price,
+        quantity: item.quantity
+      }));
+
+      // Crear orden y obtener link de pago de Wompi
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${API_URL}/api/payments/create-order`,
+        { items },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data.payment && response.data.payment.paymentUrl) {
+        // Limpiar carrito antes de redirigir a Wompi
+        clearCart();
+        
+        // Redirigir a la URL de pago de Wompi
+        window.location.href = response.data.payment.paymentUrl;
+      } else {
+        throw new Error('No se generó el link de pago');
+      }
       
     } catch (error) {
-      alert('Error al procesar la orden. Inténtalo de nuevo.');
+      console.error('Error al procesar la orden:', error);
+      setError(
+        error.response?.data?.message || 
+        'Error al procesar la orden. Por favor, inténtalo de nuevo.'
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -186,6 +209,19 @@ const Cart = () => {
               ← Continuar Comprando
             </Link>
             
+            {error && (
+              <div className="error-message" style={{
+                padding: '10px',
+                marginBottom: '10px',
+                backgroundColor: '#fee',
+                color: '#c00',
+                borderRadius: '4px',
+                fontSize: '14px'
+              }}>
+                {error}
+              </div>
+            )}
+            
             <button
               className={`checkout-button ${isProcessing ? 'processing' : ''}`}
               onClick={handleCheckout}
@@ -197,7 +233,7 @@ const Cart = () => {
                   Procesando...
                 </>
               ) : (
-                'Finalizar Compra'
+                'Pagar con Wompi'
               )}
             </button>
           </div>
