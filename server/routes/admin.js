@@ -172,4 +172,53 @@ router.delete('/users/:id', async (req, res) => {
   }
 });
 
+// GET /api/admin/orders - Obtener todos los pedidos con detalles completos
+router.get('/orders', async (req, res) => {
+  try {
+    const pool = database.getPool();
+
+    const result = await pool.query(`
+      SELECT 
+        o.id as order_id,
+        o.total,
+        o.status,
+        o.paymentmethod,
+        o.paymentid,
+        o.createdat as order_date,
+        -- Cliente
+        c.id as cliente_id,
+        c.firstname as cliente_firstname,
+        c.lastname as cliente_lastname,
+        c.email as cliente_email,
+        -- Items del pedido
+        json_agg(
+          json_build_object(
+            'item_id', oi.id,
+            'product_id', oi.productid,
+            'product_title', p.title,
+            'option_type', oi.optiontype,
+            'price', oi.price,
+            'quantity', oi.quantity,
+            'patronista_id', p.patronistaid,
+            'patronista_firstname', pat.firstname,
+            'patronista_lastname', pat.lastname
+          )
+        ) as items
+      FROM orders o
+      INNER JOIN users c ON o.clienteid = c.id
+      INNER JOIN order_items oi ON o.id = oi.orderid
+      INNER JOIN products p ON oi.productid = p.id
+      INNER JOIN users pat ON p.patronistaid = pat.id
+      GROUP BY o.id, c.id, c.firstname, c.lastname, c.email
+      ORDER BY o.createdat DESC
+    `);
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error('Error en GET /admin/orders:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
 module.exports = router;

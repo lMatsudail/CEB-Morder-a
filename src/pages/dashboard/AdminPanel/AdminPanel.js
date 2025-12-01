@@ -10,6 +10,8 @@ const AdminPanel = () => {
   
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [activeTab, setActiveTab] = useState('usuarios'); // 'usuarios' o 'pedidos'
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -32,13 +34,15 @@ const AdminPanel = () => {
       setLoading(true);
       setError('');
       
-      const [usersData, statsData] = await Promise.all([
+      const [usersData, statsData, ordersData] = await Promise.all([
         adminService.getAllUsers(),
-        adminService.getStats()
+        adminService.getStats(),
+        adminService.getAllOrders()
       ]);
 
       setUsers(usersData);
       setStats(statsData);
+      setOrders(ordersData);
     } catch (error) {
       console.error('Error cargando datos:', error);
       setError(error.message || 'Error cargando datos del sistema');
@@ -94,6 +98,44 @@ const AdminPanel = () => {
       case 'patronista': return 'Patronista';
       case 'cliente': return 'Cliente';
       default: return role;
+    }
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0
+    }).format(price);
+  };
+
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString('es-CO', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getStatusBadgeClass = (status) => {
+    switch(status) {
+      case 'paid': return 'status-paid';
+      case 'completed': return 'status-completed';
+      case 'pending': return 'status-pending';
+      case 'cancelled': return 'status-cancelled';
+      default: return 'status-default';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch(status) {
+      case 'paid': return 'Pagado';
+      case 'completed': return 'Completado';
+      case 'pending': return 'Pendiente';
+      case 'cancelled': return 'Cancelado';
+      default: return status;
     }
   };
 
@@ -201,61 +243,158 @@ const AdminPanel = () => {
       )}
 
       {/* Lista de Usuarios */}
-      <div className="users-section">
-        <div className="section-header">
-          <h2>Gestión de Usuarios</h2>
+      <div className="tabs-container">
+        <div className="tabs-header">
           <button 
-            className="btn-refresh" 
-            onClick={loadData}
-            disabled={loading}
+            className={`tab-button ${activeTab === 'usuarios' ? 'active' : ''}`}
+            onClick={() => setActiveTab('usuarios')}
           >
-            Actualizar
+            Gestión de Usuarios
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'pedidos' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pedidos')}
+          >
+            Pedidos y Ventas
           </button>
         </div>
 
-        <div className="users-table-container">
-          <table className="users-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Rol</th>
-                <th>Teléfono</th>
-                <th>Ciudad</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map(userItem => (
-                <tr key={userItem.id}>
-                  <td>{userItem.id}</td>
-                  <td>{userItem.firstname} {userItem.lastname}</td>
-                  <td>{userItem.email}</td>
-                  <td>
-                    <span className={`role-badge ${getRoleBadgeClass(userItem.role)}`}>
-                      {getRoleText(userItem.role)}
-                    </span>
-                  </td>
-                  <td>{userItem.phone || '-'}</td>
-                  <td>{userItem.city || '-'}</td>
-                  <td>
-                    <button
-                      className="btn-action btn-edit"
-                      onClick={() => handleChangeRole(userItem)}
-                      disabled={loading}
-                    >
-                      Cambiar Rol
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {activeTab === 'usuarios' && (
+          <div className="users-section">
+            <div className="section-header">
+              <h2>Gestión de Usuarios</h2>
+              <button 
+                className="btn-refresh" 
+                onClick={loadData}
+                disabled={loading}
+              >
+                Actualizar
+              </button>
+            </div>
+
+            <div className="users-table-container">
+              <table className="users-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Teléfono</th>
+                    <th>Ciudad</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map(userItem => (
+                    <tr key={userItem.id}>
+                      <td>{userItem.id}</td>
+                      <td>{userItem.firstname} {userItem.lastname}</td>
+                      <td>{userItem.email}</td>
+                      <td>
+                        <span className={`role-badge ${getRoleBadgeClass(userItem.role)}`}>
+                          {getRoleText(userItem.role)}
+                        </span>
+                      </td>
+                      <td>{userItem.phone || '-'}</td>
+                      <td>{userItem.city || '-'}</td>
+                      <td>
+                        <button
+                          className="btn-action btn-edit"
+                          onClick={() => handleChangeRole(userItem)}
+                          disabled={loading}
+                        >
+                          Cambiar Rol
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'pedidos' && (
+          <div className="orders-section">
+            <div className="section-header">
+              <h2>Historial de Pedidos</h2>
+              <button 
+                className="btn-refresh" 
+                onClick={loadData}
+                disabled={loading}
+              >
+                Actualizar
+              </button>
+            </div>
+
+            {orders.length === 0 ? (
+              <div className="empty-state">
+                <p>No hay pedidos registrados</p>
+              </div>
+            ) : (
+              <div className="orders-list">
+                {orders.map(order => (
+                  <div key={order.order_id} className="order-card">
+                    <div className="order-header">
+                      <div className="order-id-section">
+                        <h3>Pedido #{order.order_id}</h3>
+                        <span className={`status-badge ${getStatusBadgeClass(order.status)}`}>
+                          {getStatusText(order.status)}
+                        </span>
+                      </div>
+                      <div className="order-total">
+                        <strong>{formatPrice(order.total)}</strong>
+                      </div>
+                    </div>
+
+                    <div className="order-details">
+                      <div className="order-info">
+                        <p><strong>Cliente:</strong> {order.cliente_firstname} {order.cliente_lastname}</p>
+                        <p><strong>Email:</strong> {order.cliente_email}</p>
+                        <p><strong>Fecha:</strong> {formatDate(order.order_date)}</p>
+                        <p><strong>Método de Pago:</strong> {order.paymentmethod || 'N/A'}</p>
+                      </div>
+
+                      <div className="order-items">
+                        <h4>Productos Comprados:</h4>
+                        <table className="items-table">
+                          <thead>
+                            <tr>
+                              <th>Producto</th>
+                              <th>Tipo</th>
+                              <th>Patronista</th>
+                              <th>Ganancia</th>
+                              <th>Cant.</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {order.items.map((item, idx) => (
+                              <tr key={idx}>
+                                <td>{item.product_title}</td>
+                                <td>
+                                  <span className={`option-badge ${item.option_type === 'training' ? 'training' : 'basic'}`}>
+                                    {item.option_type === 'basic' ? 'Básico' : 'Con Capacitación'}
+                                  </span>
+                                </td>
+                                <td>{item.patronista_firstname} {item.patronista_lastname}</td>
+                                <td className="price-cell">{formatPrice(item.price)}</td>
+                                <td className="qty-cell">{item.quantity}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Modal para cambiar rol */}
+      {/* Resto del código: Modal para cambiar rol */}
       {showModal && selectedUser && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>

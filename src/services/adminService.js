@@ -86,6 +86,16 @@ const adminService = {
     } catch (error) {
       throw error.response?.data || { message: 'Error eliminando usuario' };
     }
+  },
+
+  // Obtener todos los pedidos con detalles
+  getAllOrders: async () => {
+    try {
+      const response = await apiClient.get('/orders');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error obteniendo pedidos' };
+    }
   }
 };
 
