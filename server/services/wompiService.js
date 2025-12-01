@@ -24,11 +24,21 @@ class WompiService {
     try {
       const { orderId, amount, currency = 'COP', customerEmail, description } = orderData;
 
+      // Validaciones básicas antes de llamar a Wompi
+      if (!orderId) throw new Error('orderId requerido');
+      if (!amount || amount <= 0) throw new Error('Monto inválido');
+      if (!customerEmail) throw new Error('Email de cliente requerido');
+      if (!this.publicKey || !this.publicKey.startsWith('pub_')) {
+        throw new Error('WOMPI_PUBLIC_KEY inválida o no configurada');
+      }
+
       // Wompi requiere el monto en centavos
       const amountInCents = Math.round(amount * 100);
 
       // Referencia única para la transacción
       const reference = `ORDER-${orderId}-${Date.now()}`;
+
+      const frontendBase = process.env.FRONTEND_URL || 'http://localhost:3000';
 
       // Crear link de pago
       const payload = {
@@ -36,7 +46,7 @@ class WompiService {
         currency,
         amount_in_cents: amountInCents,
         reference,
-        redirect_url: `${process.env.FRONTEND_URL}/order-confirmation?orderId=${orderId}`, // URL de retorno
+        redirect_url: `${frontendBase}/checkout?orderId=${orderId}`, // Redirigir al flujo que hace polling
         customer_email: customerEmail,
         customer_data: {
           email: customerEmail,
@@ -44,10 +54,23 @@ class WompiService {
         }
       };
 
+      // Métodos de pago opcionales configurables por env (e.g. CARD,PSE,NEQUI)
+      if (process.env.WOMPI_PAYMENT_METHODS) {
+        payload.payment_method_types = process.env.WOMPI_PAYMENT_METHODS.split(',').map(m => m.trim()).filter(Boolean);
+      }
+
       // Agregar descripción si existe
       if (description) {
         payload.payment_description = description;
       }
+
+      // Log controlado (sin datos sensibles)
+      console.log('[WOMPI] Creando payment_link', {
+        reference,
+        amountInCents,
+        redirect_url: payload.redirect_url,
+        payment_method_types: payload.payment_method_types
+      });
 
       const response = await axios.post(
         `${this.baseURL}/payment_links`,
@@ -71,10 +94,12 @@ class WompiService {
       };
 
     } catch (error) {
-      console.error('Error creando link de pago Wompi:', error.response?.data || error.message);
+      // Extraer mensajes detallados de Wompi si existen
+      const wompiDetail = error.response?.data;
+      console.error('Error creando link de pago Wompi:', wompiDetail || error.message);
       return {
         success: false,
-        error: error.response?.data?.error?.messages || 'Error al crear link de pago'
+        error: wompiDetail?.error?.messages || wompiDetail?.error || error.message || 'Error al crear link de pago'
       };
     }
   }
