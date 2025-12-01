@@ -38,7 +38,7 @@ Este proyecto implementa una solución completa de e-commerce orientada al merca
 ### Backend
 - **Node.js 16+**: Runtime de JavaScript del lado del servidor
 - **Express.js 4**: Framework web minimalista y flexible
-- **SQLite3**: Base de datos relacional embebida (desarrollo)
+- **PostgreSQL (pg)**: Base de datos relacional en producción (Render)
 - **bcryptjs**: Encriptación de contraseñas con algoritmo bcrypt
 - **jsonwebtoken**: Implementación de JWT para autenticación stateless
 - **Multer**: Middleware para manejo de archivos multipart/form-data
@@ -123,27 +123,29 @@ Este comando instalará todas las dependencias tanto del frontend como del backe
 
 #### 3. Configurar Variables de Entorno
 
-Crear un archivo `.env` en la raíz del proyecto con las siguientes variables:
+Crear un archivo `.env` en la raíz del proyecto con las siguientes variables (ejemplo para desarrollo local):
 
 ```env
 # Configuración del Servidor
 PORT=3000
 NODE_ENV=development
 
-# Base de Datos
-DATABASE_PATH=./server/database/ecommerce.db
+# Base de Datos (usar Postgres en dev/prod)
+DATABASE_URL=postgres://usuario:password@localhost:5432/ceb_db
 
 # JWT Secret (generar uno seguro en producción)
 JWT_SECRET=tu_clave_secreta_aqui_cambiar_en_produccion
 
-# URLs
+# URLs/CORS
 FRONTEND_URL=http://localhost:5000
-BACKEND_URL=http://localhost:3000
+
+# Frontend (React) - apunta al backend
+REACT_APP_API_URL=http://localhost:3000
 ```
 
 #### 4. Inicializar Base de Datos
 
-La base de datos se inicializa automáticamente al ejecutar el servidor por primera vez. Las tablas se crean usando el script en `server/models/database.js`.
+La base de datos se inicializa automáticamente al ejecutar el servidor por primera vez. Las tablas se crean en PostgreSQL usando `server/models/database.js`. En producción se valida/crea el usuario admin (`admin@ceb.com`).
 
 #### 5. Ejecutar en Modo Desarrollo
 
@@ -337,94 +339,63 @@ DATABASE_PATH=./database/production.db
 npm start
 ```
 
-### Opciones de Hosting
+### Despliegue en Render
 
-**Frontend (React):**
-- Vercel
-- Netlify
-- GitHub Pages
-- AWS S3 + CloudFront
+**Backend (Web Service):**
+- Servicio: `https://ceb-molderia-api.onrender.com`
+- Variables: `NODE_ENV=production`, `JWT_SECRET`, `DATABASE_URL` (PostgreSQL de Render)
+- CORS: define `FRONTEND_URL=https://ceb-molderia-web.onrender.com`
+- Health: `/api/health` y `/api/health/db`
 
-**Backend (Node.js):**
-- Heroku
-- DigitalOcean App Platform
-- AWS EC2
-- Google Cloud Run
+**Frontend (Static Site):**
+- Sitio: `https://ceb-molderia-web.onrender.com`
+- Variable: `REACT_APP_API_URL=https://ceb-molderia-api.onrender.com`
+- Reconstruye cuando cambian `src/**` y `public/**`
 
 ### Consideraciones de Producción
 
-- Configurar HTTPS con certificado SSL
-- Implementar rate limiting
-- Configurar logs con Winston o Morgan
-- Migrar a PostgreSQL para mejor rendimiento
-- Implementar sistema de backups automáticos
-- Configurar monitoring (Sentry, New Relic)
+- HTTPS provisto por Render
+- Rate limiting y cabeceras seguras (Helmet)
+- Logs de servidor (Render + futura integración de Winston)
+- Backups en Postgres de Render
+- Monitoring (Sentry, futuro)
 
 ## Base de Datos
 
-### Esquema Relacional
+### Esquema Relacional (PostgreSQL)
+
+Columnas en minúsculas (sin comillas) para evitar problemas de case-sensitivity.
 
 ```sql
--- Tabla de Usuarios
-users (
-  id INTEGER PRIMARY KEY,
+-- Usuarios
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
-  firstName TEXT NOT NULL,
-  lastName TEXT NOT NULL,
-  role TEXT CHECK(role IN ('patronista', 'cliente', 'admin')),
+  firstname TEXT NOT NULL,
+  lastname TEXT NOT NULL,
+  role TEXT CHECK (role IN ('patronista','cliente','admin')) NOT NULL,
   phone TEXT,
   city TEXT,
-  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-)
+  createdat TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
--- Tabla de Productos
-products (
-  id INTEGER PRIMARY KEY,
+-- Productos
+CREATE TABLE IF NOT EXISTS products (
+  id SERIAL PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT,
-  patronistaId INTEGER REFERENCES users(id),
+  patronistaid INTEGER REFERENCES users(id),
   category TEXT,
-  difficulty TEXT CHECK(difficulty IN ('principiante', 'intermedio', 'avanzado')),
-  basePrice REAL NOT NULL,
-  trainingPrice REAL,
+  difficulty TEXT CHECK (difficulty IN ('principiante','intermedio','avanzado')),
+  baseprice NUMERIC(12,2) NOT NULL,
+  trainingprice NUMERIC(12,2),
   sizes TEXT,
   measurements TEXT,
   tags TEXT,
   status TEXT DEFAULT 'active',
-  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-)
-
--- Tabla de Archivos de Producto
-product_files (
-  id INTEGER PRIMARY KEY,
-  productId INTEGER REFERENCES products(id),
-  fileType TEXT CHECK(fileType IN ('image', 'pattern', 'document')),
-  fileName TEXT NOT NULL,
-  filePath TEXT NOT NULL,
-  fileSize INTEGER,
-  uploadedAt DATETIME DEFAULT CURRENT_TIMESTAMP
-)
-
--- Tabla de Pedidos
-orders (
-  id INTEGER PRIMARY KEY,
-  userId INTEGER REFERENCES users(id),
-  total REAL NOT NULL,
-  status TEXT DEFAULT 'pending',
-  paymentMethod TEXT,
-  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-)
-
--- Tabla de Items del Pedido
-order_items (
-  id INTEGER PRIMARY KEY,
-  orderId INTEGER REFERENCES orders(id),
-  productId INTEGER REFERENCES products(id),
-  optionType TEXT CHECK(optionType IN ('basic', 'training')),
-  price REAL NOT NULL,
-  quantity INTEGER DEFAULT 1
-)
+  createdat TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
 ## Testing
@@ -450,7 +421,7 @@ Para información detallada sobre la arquitectura y prácticas de código, consu
 
 ## Licencia
 
-Este proyecto ha sido desarrollado con fines académicos como parte del programa de Ingeniería de Software.
+Este proyecto ha sido desarrollado con fines académicos como parte del programa de Desarrollo Web.
 
 ## Autor
 
@@ -469,15 +440,14 @@ Este proyecto ha sido desarrollado con fines académicos como parte del programa
 
 - ✅ **Arquitectura Base**: Estructura completa del proyecto con separación frontend/backend
 - ✅ **Autenticación**: Sistema completo de registro, login y gestión de sesiones con JWT
-- ✅ **Base de Datos**: Modelo relacional completo con SQLite
+- ✅ **Base de Datos**: PostgreSQL (Render) con tablas en minúsculas
 - ✅ **API REST**: Endpoints funcionales para usuarios, productos, pedidos y catálogo
 - ✅ **Sistema de Roles**: Implementación de permisos diferenciados por rol
 - ✅ **Interfaz de Usuario**: Diseño responsivo y profesional
-- ✅ **Carrito de Compras**: Funcionalidad completa con persistencia en localStorage
+- ✅ **Carrito de Compras**: Persistencia en localStorage
 - ✅ **Catálogo Público**: Visualización de productos con filtros y búsqueda
-- ✅ **Panel de Patronista**: Interface para gestión de productos
-- ✅ **Panel de Cliente**: Área personal con historial de compras
-- ✅ **Gestión de Archivos**: Sistema de subida y validación de archivos
+- ✅ **Panel de Patronista/Cliente/Admin**: Gestión y administración
+- ✅ **Gestión de Archivos**: Subida y validación de archivos
 
 ### Funcionalidades en Desarrollo
 
@@ -489,8 +459,7 @@ Este proyecto ha sido desarrollado con fines académicos como parte del programa
 ### Mejoras Futuras
 
 - **Escalabilidad**
-  - Migración a PostgreSQL
-  - Implementación de Redis para caché
+  - Caché con Redis
   - Microservicios para funcionalidades específicas
 
 - **Características Adicionales**
