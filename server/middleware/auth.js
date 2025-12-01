@@ -22,7 +22,7 @@ const authMiddleware = (req, res, next) => {
     }
 
     // Verificar token
-    const decoded = jwt.verify(token, config.JWT.SECRET);
+    const decoded = jwt.verify(token, config.JWT_SECRET);
     req.user = decoded;
     
     next();
