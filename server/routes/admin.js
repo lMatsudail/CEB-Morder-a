@@ -235,7 +235,6 @@ router.get('/products', async (req, res) => {
         p.trainingprice,
         p.difficulty,
         p.sizes,
-        p.tags,
         p.active,
         p.createdat,
         p.updatedat,
