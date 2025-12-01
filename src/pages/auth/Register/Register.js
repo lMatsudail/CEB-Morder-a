@@ -49,7 +49,7 @@ const Register = () => {
       const response = await register(dataToSend);
       
       // Redirigir según el rol del usuario
-      if (response.user.role === 'patronista') {
+      if (response?.user?.role === 'patronista') {
         navigate('/patronista');
       } else {
         navigate('/cliente');
