@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { orderService } from '../../../services/orderService';
+import { fileService } from '../../../services/fileService';
 import './ClientePanel.css';
 
 const ClientePanel = () => {
@@ -23,11 +24,8 @@ const ClientePanel = () => {
   const loadOrders = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/orders/my-orders', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setOrders(response.data);
+      const data = await orderService.getMyOrders();
+      setOrders(data);
     } catch (error) {
       console.error('Error cargando pedidos:', error);
       setError('Error al cargar tus pedidos');
@@ -81,14 +79,10 @@ const ClientePanel = () => {
 
   const handleDownloadFile = async (fileId, fileName) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/files/download/${fileId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        responseType: 'blob'
-      });
+      const blob = await fileService.downloadFile(fileId);
 
       // Crear enlace de descarga
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', fileName);
