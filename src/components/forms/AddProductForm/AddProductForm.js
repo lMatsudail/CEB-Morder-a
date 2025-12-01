@@ -212,6 +212,7 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
     
     if (!validateForm()) {
       console.log('❌ Validación fallida:', errors);
+      // Los errores se mostrarán encima del botón Guardar
       return;
     }
 
@@ -300,12 +301,6 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
       </div>
 
       <form onSubmit={handleSubmit} className="product-form">
-        {errors.submit && (
-          <div className="error-message">
-            {errors.submit}
-          </div>
-        )}
-
         {/* Información Básica */}
         <div className="form-section">
           <h4>Información Básica</h4>
@@ -649,6 +644,29 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
             </div>
           </div>
         </div>
+
+        {/* Panel de errores justo antes de los botones */}
+        {errors.submit && (
+          <div className="error-message error-before-button">
+            <strong>❌ Error al guardar:</strong> {errors.submit}
+          </div>
+        )}
+
+        {Object.keys(errors).length > 0 && !errors.submit && (
+          <div className="error-message validation-errors error-before-button">
+            <strong>⚠️ Faltan campos obligatorios para guardar:</strong>
+            <ul style={{ marginTop: '10px', marginLeft: '20px' }}>
+              {errors.title && <li>Título del molde</li>}
+              {errors.description && <li>Descripción del producto</li>}
+              {errors.category && <li>Categoría</li>}
+              {errors.sizes && <li>Seleccionar al menos una talla</li>}
+              {errors.basicPrice && <li>Precio básico válido</li>}
+              {errors.trainingPrice && <li>Precio con capacitación debe ser mayor al básico</li>}
+              {errors.images && <li><strong>IMÁGENES:</strong> Debes subir al menos 1 imagen del producto</li>}
+              {errors.patterns && <li><strong>ARCHIVOS DE MOLDE:</strong> Debes subir al menos 1 archivo (.PDS, .MKR, etc.)</li>}
+            </ul>
+          </div>
+        )}
 
         {/* Botones de Acción */}
         <div className="form-actions">

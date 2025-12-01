@@ -69,25 +69,78 @@
   box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
 }
 
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: rgba(0, 0, 0, 0.25);
+  font-style: italic;
+}
+
 .form-group input.error,
 .form-group select.error,
 .form-group textarea.error {
-  border-color: #000000;
+  border-color: #e74c3c;
+  background-color: #fff5f5;
+  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
 }
 
 .error-text {
-  color: #000000;
+  color: #e74c3c;
   font-size: 0.85rem;
   margin-top: 0.25rem;
+  font-weight: var(--font-weight-semibold);
 }
 
 .error-message {
-  background: #f8d7da;
-  color: #721c24;
-  padding: 1rem;
-  border-radius: 6px;
-  border: 1px solid #f5c6cb;
+  background: #fff5f5;
+  color: #c0392b;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 2px solid #e74c3c;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
+  animation: shake 0.5s;
+}
+
+.error-message strong {
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.validation-errors ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.validation-errors li {
+  margin: 8px 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Error antes del botón - MUY VISIBLE */
+.error-before-button {
+  margin-top: 2rem;
   margin-bottom: 1rem;
+  background: #ffe6e6;
+  border: 3px solid #e74c3c;
+  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
+  animation: shake 0.5s, pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
+  }
+  50% { 
+    box-shadow: 0 6px 25px rgba(231, 76, 60, 0.5);
+  }
 }
 
 /* Selector de Tallas */

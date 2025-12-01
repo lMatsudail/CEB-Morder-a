@@ -29,6 +29,7 @@ const PatronistaPanel = () => {
 
   const loadPatronistaData = async () => {
     setLoading(true);
+    setError(''); // Limpiar errores previos
     try {
       // Cargar productos del patronista
       const myProducts = await productService.getMyProducts();
@@ -59,7 +60,23 @@ const PatronistaPanel = () => {
       });
       
     } catch (error) {
-      setError('Error cargando datos');
+      console.error('❌ Error cargando datos del patronista:', error);
+      
+      // Mensaje de error más descriptivo
+      if (error.response) {
+        const status = error.response.status;
+        if (status === 404) {
+          setError('No se encontró el endpoint. Contacta al administrador.');
+        } else if (status === 401 || status === 403) {
+          setError('No tienes permisos para ver estos datos. Inicia sesión nuevamente.');
+        } else {
+          setError(`Error del servidor (${status}): ${error.response.data?.message || 'Intenta más tarde'}`);
+        }
+      } else if (error.request) {
+        setError('No se pudo conectar con el servidor. Verifica tu conexión a internet.');
+      } else {
+        setError('Error inesperado: ' + error.message);
+      }
     } finally {
       setLoading(false);
     }
