@@ -33,6 +33,7 @@ const AdminPanel = () => {
     }
 
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
   const loadData = async () => {
@@ -40,17 +41,25 @@ const AdminPanel = () => {
       setLoading(true);
       setError('');
       
-      const [usersData, statsData, ordersData, productsData] = await Promise.all([
+      // Cargar datos principales
+      const [usersData, statsData, ordersData] = await Promise.all([
         adminService.getAllUsers(),
         adminService.getStats(),
-        adminService.getAllOrders(),
-        adminService.getAllProducts()
+        adminService.getAllOrders()
       ]);
 
       setUsers(usersData);
       setStats(statsData);
       setOrders(ordersData);
-      setProducts(productsData);
+
+      // Intentar cargar productos (puede fallar si backend no está actualizado)
+      try {
+        const productsData = await adminService.getAllProducts();
+        setProducts(productsData);
+      } catch (productError) {
+        console.warn('No se pudieron cargar productos:', productError);
+        setProducts([]);
+      }
     } catch (error) {
       console.error('Error cargando datos:', error);
       setError(error.message || 'Error cargando datos del sistema');
