@@ -214,7 +214,10 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
         basicPrice: parseFloat(formData.basicPrice),
         trainingPrice: formData.trainingPrice ? parseFloat(formData.trainingPrice) : null,
         tags: formData.tags,
-        active: formData.active
+        active: formData.active,
+        // Adjuntar archivos para envío multipart/form-data
+        images: images.map(img => img.file),
+        files: patternFiles.map(p => p.file)
       };
 
       let result;
