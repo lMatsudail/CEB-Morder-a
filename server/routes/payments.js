@@ -32,7 +32,7 @@ router.post('/create-order', auth, async (req, res) => {
 
       // Crear orden en estado pending
       const orderQuery = `
-        INSERT INTO orders (clienteid, total, status, paymentmethod) 
+        INSERT INTO orders ("clienteId", total, status, "paymentMethod") 
         VALUES ($1, $2, $3, $4) 
         RETURNING id
       `;
@@ -41,7 +41,7 @@ router.post('/create-order', auth, async (req, res) => {
 
       // Insertar items del pedido
       const itemQuery = `
-        INSERT INTO order_items (orderid, productid, optiontype, price, quantity) 
+        INSERT INTO order_items ("orderId", "productId", "optionType", price, quantity) 
         VALUES ($1, $2, $3, $4, $5)
       `;
 
@@ -56,7 +56,7 @@ router.post('/create-order', auth, async (req, res) => {
       }
 
       // Obtener datos del usuario para Wompi
-      const userQuery = 'SELECT email, firstname, lastname FROM users WHERE id = $1';
+      const userQuery = 'SELECT email, "firstName", "lastName" FROM users WHERE id = $1';
       const userResult = await pool.query(userQuery, [userId]);
       const user = userResult.rows[0];
 
@@ -69,7 +69,7 @@ router.post('/create-order', auth, async (req, res) => {
         amount: total,
         currency: 'COP',
         customerEmail: user.email,
-        customerName: `${user.firstname} ${user.lastname}`,
+        customerName: `${user.firstName} ${user.lastName}`,
         description,
         paymentMethods // Pasamos array si fue enviado
       };
@@ -87,7 +87,7 @@ router.post('/create-order', auth, async (req, res) => {
 
       // Actualizar orden con paymentId
       await pool.query(
-        'UPDATE orders SET paymentid = $1 WHERE id = $2',
+        'UPDATE orders SET "paymentId" = $1 WHERE id = $2',
         [paymentResult.data.paymentId, orderId]
       );
 
@@ -133,9 +133,9 @@ router.get('/status/:orderId', auth, async (req, res) => {
 
     // Verificar que la orden pertenece al usuario
     const orderQuery = `
-      SELECT id, clienteid, total, status, paymentmethod, paymentid, createdat
+      SELECT id, "clienteId", total, status, "paymentMethod", "paymentId", "createdAt"
       FROM orders
-      WHERE id = $1 AND clienteid = $2
+      WHERE id = $1 AND "clienteId" = $2
     `;
     const orderResult = await pool.query(orderQuery, [orderId, userId]);
 
@@ -146,7 +146,7 @@ router.get('/status/:orderId', auth, async (req, res) => {
     const order = orderResult.rows[0];
 
     // Si tiene paymentId de Wompi, consultar estado
-    if (order.paymentid) {
+    if (order.paymentId) {
       const statusResult = await wompiService.getTransactionStatus(order.paymentid);
 
       if (statusResult.success) {
@@ -167,7 +167,7 @@ router.get('/status/:orderId', auth, async (req, res) => {
           total: order.total,
           paymentStatus: statusResult.data.status,
           paymentMethod: statusResult.data.paymentMethod,
-          createdAt: order.createdat
+          createdAt: order.createdAt
         });
       }
     }
@@ -177,7 +177,7 @@ router.get('/status/:orderId', auth, async (req, res) => {
       orderId: order.id,
       status: order.status,
       total: order.total,
-      createdAt: order.createdat
+      createdAt: order.createdAt
     });
 
   } catch (error) {
@@ -227,7 +227,7 @@ router.post('/webhook', async (req, res) => {
     const newStatus = wompiService.mapPaymentStatus(status);
 
     await pool.query(
-      'UPDATE orders SET status = $1, paymentid = $2 WHERE id = $3',
+      'UPDATE orders SET status = $1, "paymentId" = $2 WHERE id = $3',
       [newStatus, transactionId, orderId]
     );
 
