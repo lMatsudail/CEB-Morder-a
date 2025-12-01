@@ -22,7 +22,7 @@ class WompiService {
    */
   async createPaymentLink(orderData) {
     try {
-      const { orderId, amount, currency = 'COP', customerEmail, description } = orderData;
+      const { orderId, amount, currency = 'COP', customerEmail, description, paymentMethods } = orderData;
 
       // Validaciones básicas antes de llamar a Wompi
       if (!orderId) throw new Error('orderId requerido');
@@ -55,8 +55,19 @@ class WompiService {
       };
 
       // Métodos de pago opcionales configurables por env (e.g. CARD,PSE,NEQUI)
-      if (process.env.WOMPI_PAYMENT_METHODS) {
-        payload.payment_method_types = process.env.WOMPI_PAYMENT_METHODS.split(',').map(m => m.trim()).filter(Boolean);
+      // Determinar métodos de pago permitidos
+      const allowed = ['CARD','PSE','NEQUI','BANCOLOMBIA_TRANSFER','CASH'];
+      let methodsSource = [];
+      if (paymentMethods && Array.isArray(paymentMethods) && paymentMethods.length) {
+        methodsSource = paymentMethods;
+      } else if (process.env.WOMPI_PAYMENT_METHODS) {
+        methodsSource = process.env.WOMPI_PAYMENT_METHODS.split(',');
+      }
+      const normalized = methodsSource
+        .map(m => m.trim().toUpperCase())
+        .filter(m => allowed.includes(m));
+      if (normalized.length) {
+        payload.payment_method_types = normalized;
       }
 
       // Agregar descripción si existe

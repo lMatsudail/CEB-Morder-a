@@ -23,6 +23,10 @@ WOMPI_PRIVATE_KEY=prv_prod_TU_LLAVE_PRIVADA
 WOMPI_EVENT_SECRET=prod_events_TU_SECRET
 WOMPI_URL=https://production.wompi.co/v1
 
+# Métodos de pago permitidos (según habilitación en tu cuenta Wompi)
+# CARD,PSE,NEQUI,BANCOLOMBIA_TRANSFER,CASH
+WOMPI_PAYMENT_METHODS=CARD,PSE,NEQUI
+
 # Frontend URL para redirección
 FRONTEND_URL=https://ceb-molderia-web.onrender.com
 ```
@@ -84,7 +88,7 @@ Más tarjetas de prueba: https://docs.wompi.co/docs/en/test-cards
 ## 🔄 Flujo de Pago
 
 1. **Usuario en carrito** → Click "Pagar con Wompi"
-2. **Frontend** → POST `/api/payments/create-order` (crea orden + link Wompi)
+2. **Frontend** → POST `/api/payments/create-order` (puede incluir `paymentMethods` para limitar medios)
 3. **Redirect** → Usuario va a URL de Wompi para pagar
 4. **Pago en Wompi** → Usuario completa el pago
 5. **Redirect de retorno** → Wompi redirige a `/checkout?orderId=123`
@@ -147,7 +151,7 @@ Crea orden y genera link de pago Wompi.
 
 **Auth:** Requiere Bearer token
 
-**Request:**
+**Request (básico):**
 ```json
 {
   "items": [
@@ -158,6 +162,16 @@ Crea orden y genera link de pago Wompi.
       "quantity": 1
     }
   ]
+}
+```
+
+**Request (con métodos de pago específicos):**
+```json
+{
+  "items": [
+    { "productId": 1, "optionType": "basic", "price": 20000, "quantity": 1 }
+  ],
+  "paymentMethods": ["CARD","PSE","NEQUI"]
 }
 ```
 
@@ -175,6 +189,12 @@ Crea orden y genera link de pago Wompi.
   }
 }
 ```
+
+  ### Consideraciones sobre métodos de pago
+  - Si no se envía `paymentMethods` en el body, se usan los de `WOMPI_PAYMENT_METHODS`.
+  - Métodos soportados actualmente: `CARD`, `PSE`, `NEQUI`, `BANCOLOMBIA_TRANSFER`, `CASH` (Efecty u otros cuando Wompi los habilite).
+  - Para que aparezcan en el checkout de Wompi deben estar activados en tu panel.
+  - Los pagos `PSE` y `CASH` pueden tardar en confirmarse (estado inicial `PENDING`). Webhook actualizará la orden.
 
 ### GET `/api/payments/status/:orderId`
 Consulta estado de pago de una orden.

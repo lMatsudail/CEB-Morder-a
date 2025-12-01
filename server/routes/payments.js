@@ -11,7 +11,7 @@ const router = express.Router();
  */
 router.post('/create-order', auth, async (req, res) => {
   try {
-    const { items } = req.body;
+    const { items, paymentMethods } = req.body; // paymentMethods opcional: ["CARD","PSE",...]
     const userId = req.user.userId;
 
     // Validaciones
@@ -70,7 +70,8 @@ router.post('/create-order', auth, async (req, res) => {
         currency: 'COP',
         customerEmail: user.email,
         customerName: `${user.firstname} ${user.lastname}`,
-        description
+        description,
+        paymentMethods // Pasamos array si fue enviado
       };
 
       const paymentResult = await wompiService.createPaymentLink(paymentData);
