@@ -161,29 +161,29 @@ router.get('/patronista-orders', auth, async (req, res) => {
     const query = `
       SELECT 
         o.id,
-        o.clienteid,
+        o."clienteId",
         o.total,
         o.status,
-        o.paymentmethod,
-        o.paymentid,
-        o.createdat,
-        o.updatedat,
+        o."paymentMethod",
+        o."paymentId",
+        o."createdAt",
+        o."updatedAt",
         json_agg(
           json_build_object(
             'id', oi.id,
-            'productId', oi.productid,
+            'productId', oi."productId",
             'productTitle', p.title,
-            'optionType', oi.optiontype,
+            'optionType', oi."optionType",
             'price', oi.price,
             'quantity', oi.quantity
           )
         ) as items
       FROM orders o
-      INNER JOIN order_items oi ON o.id = oi.orderid
-      INNER JOIN products p ON oi.productid = p.id
-      WHERE p.patronistaid = $1
+      INNER JOIN order_items oi ON o.id = oi."orderId"
+      INNER JOIN products p ON oi."productId" = p.id
+      WHERE p."patronistaId" = $1
       GROUP BY o.id
-      ORDER BY o.createdat DESC
+      ORDER BY o."createdAt" DESC
     `;
 
     const result = await pool.query(query, [patronistaId]);
