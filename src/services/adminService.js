@@ -96,6 +96,16 @@ const adminService = {
     } catch (error) {
       throw error.response?.data || { message: 'Error obteniendo pedidos' };
     }
+  },
+
+  // Obtener todos los moldes/productos con información completa
+  getAllProducts: async () => {
+    try {
+      const response = await apiClient.get('/products');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error obteniendo moldes' };
+    }
   }
 };
 

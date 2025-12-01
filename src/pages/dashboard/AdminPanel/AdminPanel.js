@@ -11,7 +11,8 @@ const AdminPanel = () => {
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState(null);
   const [orders, setOrders] = useState([]);
-  const [activeTab, setActiveTab] = useState('usuarios'); // 'usuarios' o 'pedidos'
+  const [products, setProducts] = useState([]);
+  const [activeTab, setActiveTab] = useState('usuarios'); // 'usuarios', 'pedidos', 'moldes'
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -20,6 +21,9 @@ const AdminPanel = () => {
   const [newRole, setNewRole] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterPatronista, setFilterPatronista] = useState('all');
+  const [filterActive, setFilterActive] = useState('all');
 
   useEffect(() => {
     // Verificar que el usuario sea admin
@@ -36,15 +40,17 @@ const AdminPanel = () => {
       setLoading(true);
       setError('');
       
-      const [usersData, statsData, ordersData] = await Promise.all([
+      const [usersData, statsData, ordersData, productsData] = await Promise.all([
         adminService.getAllUsers(),
         adminService.getStats(),
-        adminService.getAllOrders()
+        adminService.getAllOrders(),
+        adminService.getAllProducts()
       ]);
 
       setUsers(usersData);
       setStats(statsData);
       setOrders(ordersData);
+      setProducts(productsData);
     } catch (error) {
       console.error('Error cargando datos:', error);
       setError(error.message || 'Error cargando datos del sistema');
@@ -297,6 +303,12 @@ const AdminPanel = () => {
           >
             Pedidos y Ventas
           </button>
+          <button 
+            className={`tab-button ${activeTab === 'moldes' ? 'active' : ''}`}
+            onClick={() => setActiveTab('moldes')}
+          >
+            Base de Datos de Moldes
+          </button>
         </div>
 
         {activeTab === 'usuarios' && (
@@ -548,6 +560,217 @@ const AdminPanel = () => {
                 {loading ? 'Guardando...' : 'Confirmar Cambio'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sección de Moldes */}
+      {activeTab === 'moldes' && (
+        <div className="products-section">
+          <div className="section-header">
+            <h2>Base de Datos de Moldes ({products.length})</h2>
+            <button 
+              className="btn-refresh" 
+              onClick={loadData}
+              disabled={loading}
+            >
+              Actualizar
+            </button>
+          </div>
+
+          {/* Filtros */}
+          <div className="filters-section">
+            <div className="filter-group">
+              <label>Buscar:</label>
+              <input
+                type="text"
+                placeholder="Buscar por título, patronista, etc..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="filter-input"
+              />
+            </div>
+            <div className="filter-group">
+              <label>Patronista:</label>
+              <select
+                value={filterPatronista}
+                onChange={(e) => setFilterPatronista(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">Todos</option>
+                {[...new Set(products.map(p => p.patronistaid))].map(id => {
+                  const product = products.find(p => p.patronistaid === id);
+                  return (
+                    <option key={id} value={id}>
+                      {product.patronista_firstname} {product.patronista_lastname}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            <div className="filter-group">
+              <label>Estado:</label>
+              <select
+                value={filterActive}
+                onChange={(e) => setFilterActive(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">Todos</option>
+                <option value="active">Activos</option>
+                <option value="inactive">Inactivos</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Tabla de Moldes */}
+          <div className="table-container">
+            <table className="data-table products-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Título</th>
+                  <th>Patronista</th>
+                  <th>Categoría</th>
+                  <th>Precio Básico</th>
+                  <th>Precio Capacitación</th>
+                  <th>Dificultad</th>
+                  <th>Tallas</th>
+                  <th>Ventas</th>
+                  <th>Imágenes</th>
+                  <th>Archivos</th>
+                  <th>Estado</th>
+                  <th>Fecha Creación</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products
+                  .filter(product => {
+                    // Filtro de búsqueda
+                    if (searchTerm) {
+                      const search = searchTerm.toLowerCase();
+                      return (
+                        product.title.toLowerCase().includes(search) ||
+                        product.patronista_firstname.toLowerCase().includes(search) ||
+                        product.patronista_lastname.toLowerCase().includes(search) ||
+                        product.category_name?.toLowerCase().includes(search) ||
+                        product.description?.toLowerCase().includes(search)
+                      );
+                    }
+                    return true;
+                  })
+                  .filter(product => {
+                    // Filtro por patronista
+                    if (filterPatronista !== 'all') {
+                      return product.patronistaid === parseInt(filterPatronista);
+                    }
+                    return true;
+                  })
+                  .filter(product => {
+                    // Filtro por estado
+                    if (filterActive === 'active') return product.active;
+                    if (filterActive === 'inactive') return !product.active;
+                    return true;
+                  })
+                  .map((product) => {
+                    const sizes = JSON.parse(product.sizes || '[]');
+                    const hasImages = product.images && product.images.length > 0;
+                    const hasFiles = product.pattern_files && product.pattern_files.length > 0;
+                    
+                    return (
+                      <tr key={product.id}>
+                        <td>{product.id}</td>
+                        <td>
+                          <div className="product-title-cell">
+                            <strong>{product.title}</strong>
+                            {product.description && (
+                              <small title={product.description}>
+                                {product.description.substring(0, 50)}...
+                              </small>
+                            )}
+                          </div>
+                        </td>
+                        <td>
+                          <div className="patronista-cell">
+                            <strong>{product.patronista_firstname} {product.patronista_lastname}</strong>
+                            <small>{product.patronista_email}</small>
+                          </div>
+                        </td>
+                        <td>{product.category_name || '-'}</td>
+                        <td className="price-cell">{formatPrice(product.basicprice)}</td>
+                        <td className="price-cell">
+                          {product.trainingprice ? formatPrice(product.trainingprice) : '-'}
+                        </td>
+                        <td>
+                          <span className={`difficulty-badge difficulty-${product.difficulty.toLowerCase()}`}>
+                            {product.difficulty}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="sizes-cell">
+                            {sizes.map(size => (
+                              <span key={size} className="size-badge">{size}</span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="sales-cell">
+                          <strong>{product.total_sales || 0}</strong>
+                        </td>
+                        <td className="status-cell">
+                          {hasImages ? (
+                            <span className="check-icon success">✓ {product.images.length}</span>
+                          ) : (
+                            <span className="check-icon warning">✗ 0</span>
+                          )}
+                        </td>
+                        <td className="status-cell">
+                          {hasFiles ? (
+                            <span className="check-icon success">✓ {product.pattern_files.length}</span>
+                          ) : (
+                            <span className="check-icon warning">✗ 0</span>
+                          )}
+                        </td>
+                        <td>
+                          <span className={`status-badge ${product.active ? 'status-active' : 'status-inactive'}`}>
+                            {product.active ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </td>
+                        <td className="date-cell">{formatDate(product.createdat)}</td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+
+            {products.length === 0 && (
+              <div className="empty-state">
+                <p>No hay moldes registrados en el sistema</p>
+              </div>
+            )}
+
+            {products.filter(product => {
+              if (searchTerm) {
+                const search = searchTerm.toLowerCase();
+                return (
+                  product.title.toLowerCase().includes(search) ||
+                  product.patronista_firstname.toLowerCase().includes(search) ||
+                  product.patronista_lastname.toLowerCase().includes(search)
+                );
+              }
+              return true;
+            }).filter(product => {
+              if (filterPatronista !== 'all') {
+                return product.patronistaid === parseInt(filterPatronista);
+              }
+              return true;
+            }).filter(product => {
+              if (filterActive === 'active') return product.active;
+              if (filterActive === 'inactive') return !product.active;
+              return true;
+            }).length === 0 && products.length > 0 && (
+              <div className="empty-state">
+                <p>No se encontraron moldes con los filtros aplicados</p>
+              </div>
+            )}
           </div>
         </div>
       )}

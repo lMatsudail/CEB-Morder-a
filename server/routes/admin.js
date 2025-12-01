@@ -221,4 +221,75 @@ router.get('/orders', async (req, res) => {
   }
 });
 
+// GET /api/admin/products - Obtener todos los moldes con información completa
+router.get('/products', async (req, res) => {
+  try {
+    const pool = database.getPool();
+
+    const result = await pool.query(`
+      SELECT 
+        p.id,
+        p.title,
+        p.description,
+        p.basicprice,
+        p.trainingprice,
+        p.difficulty,
+        p.sizes,
+        p.tags,
+        p.active,
+        p.createdat,
+        p.updatedat,
+        -- Información del patronista
+        p.patronistaid,
+        u.firstname as patronista_firstname,
+        u.lastname as patronista_lastname,
+        u.email as patronista_email,
+        -- Información de categoría
+        p.categoryid,
+        c.name as category_name,
+        -- Imágenes
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', pf.id,
+              'url', pf.filepath,
+              'filename', pf.filename
+            )
+          )
+          FROM product_files pf
+          WHERE pf.productid = p.id AND pf.filetype = 'image'
+        ) as images,
+        -- Archivos de molde
+        (
+          SELECT json_agg(
+            json_build_object(
+              'id', pf.id,
+              'filename', pf.filename,
+              'filepath', pf.filepath,
+              'originalname', pf.originalname
+            )
+          )
+          FROM product_files pf
+          WHERE pf.productid = p.id AND pf.filetype = 'pattern'
+        ) as pattern_files,
+        -- Estadísticas de ventas
+        (
+          SELECT COUNT(*)
+          FROM order_items oi
+          WHERE oi.productid = p.id
+        ) as total_sales
+      FROM products p
+      INNER JOIN users u ON p.patronistaid = u.id
+      LEFT JOIN categories c ON p.categoryid = c.id
+      ORDER BY p.createdat DESC
+    `);
+
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error('Error en GET /admin/products:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
 module.exports = router;

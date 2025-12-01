@@ -777,3 +777,200 @@
   color: #718096;
 }
 
+/* Estilos para la sección de moldes */
+.products-section {
+  background: var(--brand-white);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.filters-section {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px solid var(--brand-yellow);
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 200px;
+}
+
+.filter-group label {
+  font-weight: 600;
+  color: var(--brand-black);
+  font-size: 0.9rem;
+}
+
+.filter-input,
+.filter-select {
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  outline: none;
+  border-color: var(--brand-yellow);
+}
+
+.products-table {
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.products-table th {
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+.product-title-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 250px;
+}
+
+.product-title-cell strong {
+  color: var(--brand-black);
+}
+
+.product-title-cell small {
+  color: #718096;
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.patronista-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.patronista-cell strong {
+  color: var(--brand-black);
+}
+
+.patronista-cell small {
+  color: #718096;
+  font-size: 0.8rem;
+}
+
+.difficulty-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.difficulty-principiante {
+  background: #c6f6d5;
+  color: #22543d;
+}
+
+.difficulty-intermedio {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.difficulty-avanzado {
+  background: #fecaca;
+  color: #7f1d1d;
+}
+
+.sizes-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  max-width: 150px;
+}
+
+.size-badge {
+  padding: 0.15rem 0.5rem;
+  background: var(--brand-yellow);
+  border: 1px solid var(--brand-black);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.sales-cell {
+  text-align: center;
+  font-weight: 600;
+  color: var(--brand-black);
+}
+
+.status-cell {
+  text-align: center;
+}
+
+.check-icon {
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.check-icon.success {
+  color: #22543d;
+  background: #c6f6d5;
+}
+
+.check-icon.warning {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.status-active {
+  background: #c6f6d5;
+  color: #22543d;
+}
+
+.status-inactive {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.date-cell {
+  font-size: 0.85rem;
+  color: #718096;
+  white-space: nowrap;
+}
+
+/* Responsive para tabla de moldes */
+@media (max-width: 1200px) {
+  .products-table {
+    font-size: 0.8rem;
+  }
+  
+  .products-table th,
+  .products-table td {
+    padding: 0.5rem;
+  }
+  
+  .product-title-cell {
+    max-width: 180px;
+  }
+}
