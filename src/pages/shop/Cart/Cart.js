@@ -13,6 +13,25 @@ const Cart = () => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedMethods, setSelectedMethods] = useState(['CARD']); // métodos por defecto
+
+  const paymentMethodOptions = [
+    { code: 'CARD', label: 'Tarjeta (Crédito/Débito)' },
+    { code: 'PSE', label: 'Transferencia PSE' },
+    { code: 'NEQUI', label: 'Nequi' },
+    { code: 'BANCOLOMBIA_TRANSFER', label: 'Bancolombia Transfer' },
+    { code: 'CASH', label: 'Efectivo (Efecty)' }
+  ];
+
+  const toggleMethod = (code) => {
+    setSelectedMethods(prev => {
+      if (prev.includes(code)) {
+        return prev.filter(m => m !== code);
+      } else {
+        return [...prev, code];
+      }
+    });
+  };
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('es-CO', {
@@ -51,9 +70,11 @@ const Cart = () => {
 
       // Crear orden y obtener link de pago de Wompi
       const token = localStorage.getItem('token');
+      const methodsToSend = selectedMethods.length ? selectedMethods : ['CARD'];
+
       const response = await axios.post(
         `${API_URL}/api/payments/create-order`,
-        { items },
+        { items, paymentMethods: methodsToSend },
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -202,6 +223,36 @@ const Cart = () => {
           <div className="summary-line total-line">
             <span><strong>Total:</strong></span>
             <span className="cart-total"><strong>{formatPrice(getCartTotal())}</strong></span>
+          </div>
+
+          <div className="payment-methods-selector" style={{
+            marginTop: '20px',
+            padding: '15px',
+            border: '1px solid var(--brand-black)',
+            borderRadius: '8px',
+            backgroundColor: 'var(--brand-white)'
+          }}>
+            <h4 style={{ marginBottom: '10px' }}>Medios de Pago</h4>
+            <p style={{ fontSize: '12px', color: '#444', marginBottom: '8px' }}>
+              Selecciona los métodos que deseas habilitar en el checkout de Wompi. Solo se mostrarán los activos en tu cuenta.
+            </p>
+            <div className="methods-grid" style={{ display: 'grid', gap: '6px' }}>
+              {paymentMethodOptions.map(opt => (
+                <label key={opt.code} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedMethods.includes(opt.code)}
+                    onChange={() => toggleMethod(opt.code)}
+                  />
+                  {opt.label}
+                </label>
+              ))}
+            </div>
+            {selectedMethods.length === 0 && (
+              <div style={{ marginTop: '8px', fontSize: '12px', color: '#c00' }}>
+                Debes seleccionar al menos un método. Usaremos TARJETA por defecto si no eliges.
+              </div>
+            )}
           </div>
 
           <div className="cart-actions">
