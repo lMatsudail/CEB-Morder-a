@@ -158,6 +158,23 @@ const database = {
   // Insertar datos de ejemplo
   insertSampleData: async () => {
     try {
+      const bcrypt = require('bcryptjs');
+      
+      // CREAR USUARIO ADMINISTRADOR POR DEFECTO
+      const adminEmail = 'admin@ceb.com';
+      const adminCheck = await pool.query('SELECT id FROM users WHERE email = $1', [adminEmail]);
+      
+      if (adminCheck.rows.length === 0) {
+        const hashedPassword = await bcrypt.hash('admin123', 10);
+        await pool.query(
+          'INSERT INTO users (firstname, lastname, email, password, role, phone, city) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+          ['Admin', 'CEB', adminEmail, hashedPassword, 'admin', '3001234567', 'Bogotá']
+        );
+        console.log('✅ Usuario administrador creado: admin@ceb.com / admin123');
+      } else {
+        console.log('ℹ️  Usuario administrador ya existe');
+      }
+      
       const categories = [
         { name: 'Vestidos', description: 'Moldes para vestidos de todo tipo' },
         { name: 'Blusas', description: 'Blusas casuales y formales' },
