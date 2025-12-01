@@ -64,18 +64,25 @@ app.use(compression());
 // Servir archivos estáticos de uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Middleware de logging para debug
+// Middleware de logging para debug - MUY VISIBLE
 app.use((req, res, next) => {
   if (req.path.includes('/api/products')) {
-    console.log(`🔍 ${req.method} ${req.path}`);
+    console.log('='.repeat(50));
+    console.log(`🔍 PETICIÓN RECIBIDA: ${req.method} ${req.path}`);
+    console.log(`🔍 URL COMPLETA: ${req.url}`);
+    console.log(`🔍 HEADERS: ${req.headers.authorization ? 'CON TOKEN' : 'SIN TOKEN'}`);
+    console.log('='.repeat(50));
   }
   next();
 });
 
 // Base de datos
 // Rutas
+console.log('📌 Registrando ruta: /api/auth');
 app.use('/api/auth', require('./routes/auth'));
+console.log('📌 Registrando ruta: /api/products');
 app.use('/api/products', require('./routes/products'));
+console.log('📌 Registrando ruta: /api/catalog');
 app.use('/api/catalog', require('./routes/catalog'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/users', require('./routes/users'));

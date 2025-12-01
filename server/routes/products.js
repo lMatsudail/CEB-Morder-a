@@ -4,6 +4,8 @@ const { auth, requirePatronista } = require('../middleware/auth');
 
 const router = express.Router();
 
+console.log('🚀 ARCHIVO products.js CARGADO - Registrando rutas...');
+
 // Obtener todos los productos (público)
 router.get('/', async (req, res) => {
   try {
@@ -42,8 +44,10 @@ router.get('/test-auth', auth, async (req, res) => {
   });
 });
 
-// Obtener productos del patronista autenticado (debe ir antes de /:id)
+// Obtener productos del patronista autenticado (debe ir ANTES de /:id)
 router.get('/my-products', auth, async (req, res) => {
+  console.log('🔥 ENDPOINT /my-products EJECUTÁNDOSE');
+  
   try {
     const userId = req.user.userId;
     const userRole = req.user.role;
@@ -160,5 +164,12 @@ router.post('/', auth, requirePatronista, async (req, res) => {
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
+
+console.log('✅ Rutas de products.js registradas correctamente');
+console.log('   - GET /');
+console.log('   - GET /test-auth');
+console.log('   - GET /my-products ⭐');
+console.log('   - GET /:id');
+console.log('   - POST /');
 
 module.exports = router;
