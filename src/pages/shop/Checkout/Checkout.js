@@ -116,7 +116,7 @@ const Checkout = () => {
           <div className="error-icon">❌</div>
           <h2>Error</h2>
           <p>{error || 'Ocurrió un error al procesar tu solicitud'}</p>
-          <button onClick={() => navigate('/catalog')} className="btn-primary">
+          <button onClick={() => navigate('/catalogo')} className="btn-primary">
             Volver al Catálogo
           </button>
         </div>

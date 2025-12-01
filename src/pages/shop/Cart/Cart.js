@@ -120,7 +120,7 @@ const Cart = () => {
           </div>
           <h3>Tu carrito está vacío</h3>
           <p>¡Descubre nuestros increíbles moldes y comienza tu proyecto!</p>
-          <Link to="/catalog" className="continue-shopping-btn">
+          <Link to="/catalogo" className="continue-shopping-btn">
             Ver Catálogo
           </Link>
         </div>
@@ -270,7 +270,7 @@ const Cart = () => {
           </div>
 
           <div className="cart-actions">
-            <Link to="/catalog" className="continue-shopping-link">
+            <Link to="/catalogo" className="continue-shopping-link">
               ← Continuar Comprando
             </Link>
             
