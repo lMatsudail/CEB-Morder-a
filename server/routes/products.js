@@ -32,6 +32,16 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Ruta de test para verificar autenticación
+router.get('/test-auth', auth, async (req, res) => {
+  console.log('🧪 TEST AUTH - Usuario:', req.user);
+  res.json({ 
+    success: true, 
+    user: req.user,
+    message: 'Autenticación funcionando correctamente' 
+  });
+});
+
 // Obtener productos del patronista autenticado (debe ir antes de /:id)
 router.get('/my-products', auth, async (req, res) => {
   try {
