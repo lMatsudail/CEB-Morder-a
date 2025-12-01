@@ -45,7 +45,7 @@ router.post('/register', async (req, res) => {
 
       // Insertar usuario
       const insertQuery = `
-        INSERT INTO users (firstName, lastName, email, password, role, phone, city) 
+        INSERT INTO users (firstname, lastname, email, password, role, phone, city) 
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING id
       `;
@@ -149,8 +149,8 @@ router.post('/login', async (req, res) => {
         token,
         user: {
           id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
+          firstName: user.firstname,
+          lastName: user.lastname,
           email: user.email,
           role: user.role,
           phone: user.phone,
@@ -174,7 +174,7 @@ router.get('/me', require('../middleware/auth').auth, async (req, res) => {
     const pool = database.getPool();
 
     const query = `
-      SELECT id, "firstName", "lastName", email, role, phone, city, "createdAt" 
+      SELECT id, firstname, lastname, email, role, phone, city, createdat 
       FROM users 
       WHERE id = $1
     `;

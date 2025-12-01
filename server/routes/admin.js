@@ -13,9 +13,9 @@ router.get('/users', async (req, res) => {
     const pool = database.getPool();
 
     const result = await pool.query(`
-      SELECT id, "firstName", "lastName", email, role, phone, city, "createdAt" 
+      SELECT id, firstname, lastname, email, role, phone, city, createdat 
       FROM users 
-      ORDER BY "createdAt" DESC
+      ORDER BY createdat DESC
     `);
 
     res.json(result.rows);
@@ -32,7 +32,7 @@ router.get('/users/:id', async (req, res) => {
     const pool = database.getPool();
 
     const result = await pool.query(`
-      SELECT id, "firstName", "lastName", email, role, phone, city, "createdAt", "updatedAt" 
+      SELECT id, firstname, lastname, email, role, phone, city, createdat, updatedat 
       FROM users 
       WHERE id = $1
     `, [id]);
@@ -72,7 +72,7 @@ router.put('/users/:id/role', async (req, res) => {
 
     // Actualizar rol
     const result = await pool.query(
-      'UPDATE users SET role = $1, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, "firstName", "lastName", email, role, phone, city, "createdAt", "updatedAt"',
+      'UPDATE users SET role = $1, updatedat = CURRENT_TIMESTAMP WHERE id = $2 RETURNING id, firstname, lastname, email, role, phone, city, createdat, updatedat',
       [role, id]
     );
 

@@ -62,7 +62,7 @@ const AdminPanel = () => {
       setLoading(true);
       await adminService.changeUserRole(selectedUser.id, newRole);
       
-      setSuccessMessage(`Rol de ${selectedUser.firstName} ${selectedUser.lastName} cambiado a ${newRole} exitosamente`);
+      setSuccessMessage(`Rol de ${selectedUser.firstname} ${selectedUser.lastname} cambiado a ${newRole} exitosamente`);
       setShowModal(false);
       setSelectedUser(null);
       
@@ -230,7 +230,7 @@ const AdminPanel = () => {
               {users.map(userItem => (
                 <tr key={userItem.id}>
                   <td>{userItem.id}</td>
-                  <td>{userItem.firstName} {userItem.lastName}</td>
+                  <td>{userItem.firstname} {userItem.lastname}</td>
                   <td>{userItem.email}</td>
                   <td>
                     <span className={`role-badge ${getRoleBadgeClass(userItem.role)}`}>
@@ -268,7 +268,7 @@ const AdminPanel = () => {
             
             <div className="modal-body">
               <div className="user-info">
-                <p><strong>Usuario:</strong> {selectedUser.firstName} {selectedUser.lastName}</p>
+                <p><strong>Usuario:</strong> {selectedUser.firstname} {selectedUser.lastname}</p>
                 <p><strong>Email:</strong> {selectedUser.email}</p>
                 <p><strong>Rol Actual:</strong> <span className={`role-badge ${getRoleBadgeClass(selectedUser.role)}`}>
                   {getRoleText(selectedUser.role)}
