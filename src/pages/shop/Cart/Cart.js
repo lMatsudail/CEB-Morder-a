@@ -147,10 +147,10 @@ const Cart = () => {
             <div key={item.id} className="cart-item">
               <div className="cart-item-image">
                 <img 
-                  src={item.image || '/images/molde-placeholder.jpg'} 
+                  src={item.image || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f0f0f0" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999" font-family="Arial" font-size="12"%3ESin imagen%3C/text%3E%3C/svg%3E'} 
                   alt={item.title}
                   onError={(e) => {
-                    e.target.src = '/images/molde-placeholder.jpg';
+                    e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23f0f0f0" width="100" height="100"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%23999" font-family="Arial" font-size="12"%3ESin imagen%3C/text%3E%3C/svg%3E';
                   }}
                 />
               </div>

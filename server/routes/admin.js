@@ -182,35 +182,35 @@ router.get('/orders', async (req, res) => {
         o.id as order_id,
         o.total,
         o.status,
-        o.paymentmethod,
-        o.paymentid,
-        o.createdat as order_date,
+        o."paymentMethod",
+        o."paymentId",
+        o."createdAt" as order_date,
         -- Cliente
         c.id as cliente_id,
-        c.firstname as cliente_firstname,
-        c.lastname as cliente_lastname,
+        c."firstName" as cliente_firstname,
+        c."lastName" as cliente_lastname,
         c.email as cliente_email,
         -- Items del pedido
         json_agg(
           json_build_object(
             'item_id', oi.id,
-            'product_id', oi.productid,
+            'product_id', oi."productId",
             'product_title', p.title,
-            'option_type', oi.optiontype,
+            'option_type', oi."optionType",
             'price', oi.price,
             'quantity', oi.quantity,
-            'patronista_id', p.patronistaid,
-            'patronista_firstname', pat.firstname,
-            'patronista_lastname', pat.lastname
+            'patronista_id', p."patronistaId",
+            'patronista_firstname', pat."firstName",
+            'patronista_lastname', pat."lastName"
           )
         ) as items
       FROM orders o
-      INNER JOIN users c ON o.clienteid = c.id
-      INNER JOIN order_items oi ON o.id = oi.orderid
-      INNER JOIN products p ON oi.productid = p.id
-      INNER JOIN users pat ON p.patronistaid = pat.id
-      GROUP BY o.id, c.id, c.firstname, c.lastname, c.email
-      ORDER BY o.createdat DESC
+      INNER JOIN users c ON o."clienteId" = c.id
+      INNER JOIN order_items oi ON o.id = oi."orderId"
+      INNER JOIN products p ON oi."productId" = p.id
+      INNER JOIN users pat ON p."patronistaId" = pat.id
+      GROUP BY o.id, c.id, c."firstName", c."lastName", c.email
+      ORDER BY o."createdAt" DESC
     `);
 
     res.json(result.rows);
@@ -231,56 +231,56 @@ router.get('/products', async (req, res) => {
         p.id,
         p.title,
         p.description,
-        p.basicprice,
-        p.trainingprice,
+        p."basicPrice",
+        p."trainingPrice",
         p.difficulty,
         p.sizes,
         p.active,
-        p.createdat,
-        p.updatedat,
+        p."createdAt",
+        p."updatedAt",
         -- Información del patronista
-        p.patronistaid,
-        u.firstname as patronista_firstname,
-        u.lastname as patronista_lastname,
+        p."patronistaId",
+        u."firstName" as patronista_firstname,
+        u."lastName" as patronista_lastname,
         u.email as patronista_email,
         -- Información de categoría
-        p.categoryid,
+        p."categoryId",
         c.name as category_name,
         -- Imágenes
         (
           SELECT json_agg(
             json_build_object(
               'id', pf.id,
-              'url', pf.filepath,
-              'filename', pf.filename
+              'url', pf."filePath",
+              'filename', pf."fileName"
             )
           )
           FROM product_files pf
-          WHERE pf.productid = p.id AND pf.filetype = 'image'
+          WHERE pf."productId" = p.id AND pf."fileType" = 'image'
         ) as images,
         -- Archivos de molde
         (
           SELECT json_agg(
             json_build_object(
               'id', pf.id,
-              'filename', pf.filename,
-              'filepath', pf.filepath,
-              'originalname', pf.originalname
+              'filename', pf."fileName",
+              'filepath', pf."filePath",
+              'originalname', pf."originalName"
             )
           )
           FROM product_files pf
-          WHERE pf.productid = p.id AND pf.filetype = 'pattern'
+          WHERE pf."productId" = p.id AND pf."fileType" = 'pattern'
         ) as pattern_files,
         -- Estadísticas de ventas
         (
           SELECT COUNT(*)
           FROM order_items oi
-          WHERE oi.productid = p.id
+          WHERE oi."productId" = p.id
         ) as total_sales
       FROM products p
-      INNER JOIN users u ON p.patronistaid = u.id
-      LEFT JOIN categories c ON p.categoryid = c.id
-      ORDER BY p.createdat DESC
+      INNER JOIN users u ON p."patronistaId" = u.id
+      LEFT JOIN categories c ON p."categoryId" = c.id
+      ORDER BY p."createdAt" DESC
     `);
 
     res.json(result.rows);
