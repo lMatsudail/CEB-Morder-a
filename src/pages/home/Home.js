@@ -8,11 +8,11 @@ const Home = () => {
   const featuresParallax = useParallax(0.3);
   const pricingParallax = useParallax(0.2);
 
-  // URLs de imágenes de Cloudinary - Actualiza estas URLs con tus imágenes
+  // URLs de imágenes de Cloudinary
   const images = {
-    hero: 'https://res.cloudinary.com/TU_CLOUD_NAME/image/upload/v1/ceb/hero-bg.jpg',
-    features: 'https://res.cloudinary.com/TU_CLOUD_NAME/image/upload/v1/ceb/features-bg.jpg',
-    pricing: 'https://res.cloudinary.com/TU_CLOUD_NAME/image/upload/v1/ceb/pricing-bg.jpg'
+    hero: 'https://res.cloudinary.com/dl1mcbdhk/image/upload/v1764616894/6_stxzod.png',
+    features: 'https://res.cloudinary.com/dl1mcbdhk/image/upload/v1764616893/1_kel0qb.png',
+    pricing: 'https://res.cloudinary.com/dl1mcbdhk/image/upload/v1764616894/3_fpj4mi.png'
   };
   const features = [
     {
