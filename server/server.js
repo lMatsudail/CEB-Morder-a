@@ -64,6 +64,14 @@ app.use(compression());
 // Servir archivos estáticos de uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Middleware de logging para debug
+app.use((req, res, next) => {
+  if (req.path.includes('/api/products')) {
+    console.log(`🔍 ${req.method} ${req.path}`);
+  }
+  next();
+});
+
 // Base de datos
 // Rutas
 app.use('/api/auth', require('./routes/auth'));

@@ -33,10 +33,21 @@ router.get('/', async (req, res) => {
 });
 
 // Obtener productos del patronista autenticado (debe ir antes de /:id)
-router.get('/my-products', auth, requirePatronista, async (req, res) => {
+router.get('/my-products', auth, async (req, res) => {
   try {
-    const patronistaId = req.user.userId;
+    const userId = req.user.userId;
+    const userRole = req.user.role;
     const pool = database.getPool();
+
+    console.log('📋 GET /my-products - Usuario:', userId, 'Rol:', userRole);
+
+    // Verificar que sea patronista
+    if (userRole !== 'patronista') {
+      console.log('❌ Usuario no es patronista');
+      return res.status(403).json({ 
+        message: 'Solo los patronistas pueden acceder a sus productos' 
+      });
+    }
 
     const query = `
       SELECT 
@@ -48,11 +59,12 @@ router.get('/my-products', auth, requirePatronista, async (req, res) => {
       ORDER BY p."createdAt" DESC
     `;
 
-    const result = await pool.query(query, [patronistaId]);
+    const result = await pool.query(query, [userId]);
+    console.log('✅ Productos encontrados:', result.rows.length);
     res.json(result.rows);
 
   } catch (error) {
-    console.error('Error en GET /my-products:', error);
+    console.error('❌ Error en GET /my-products:', error);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
