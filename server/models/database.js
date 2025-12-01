@@ -171,11 +171,17 @@ const database = {
       if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_SEED === 'true') {
         await database.insertSampleData();
       } else {
+        // En producción, intentar crear admin pero sin fallar si hay problemas
         await database.ensureAdminUser();
       }
     } catch (error) {
       console.error('Error creando tablas:', error);
-      throw error;
+      // NO lancar error en producción - dejar que el servidor arranque de todas formas
+      if (process.env.NODE_ENV !== 'production') {
+        throw error;
+      } else {
+        console.error('⚠️  ADVERTENCIA: El servidor arrancará pese al error en tablas/admin');
+      }
     }
   },
 
@@ -184,16 +190,32 @@ const database = {
     try {
       const bcrypt = require('bcryptjs');
       const adminEmail = 'admin@ceb.com';
-      const adminCheck = await pool.query('SELECT id FROM users WHERE email = $1', [adminEmail]);
-      if (adminCheck.rows.length === 0) {
-        const hashedPassword = await bcrypt.hash('admin123', 10);
-        await pool.query(
-          'INSERT INTO users (firstname, lastname, email, password, role, phone, city) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-          ['Admin', 'CEB', adminEmail, hashedPassword, 'admin', '3001234567', 'Bogotá']
-        );
-        console.log('✅ Admin creado (producción): admin@ceb.com / admin123');
-      } else {
-        console.log('ℹ️  Admin ya existe en producción');
+      
+      // Primero, vamos a obtener la estructura de la tabla users para saber qué columnas tiene
+      const columnsResult = await pool.query(`
+        SELECT column_name, data_type
+        FROM information_schema.columns
+        WHERE table_name = 'users'
+        ORDER BY ordinal_position
+      `);
+      
+      console.log('📋 Estructura de tabla users en producción:', columnsResult.rows);
+      
+      // Intentar el check del admin de forma segura
+      try {
+        const adminCheck = await pool.query('SELECT id FROM users WHERE email = $1', [adminEmail]);
+        if (adminCheck.rows.length === 0) {
+          const hashedPassword = await bcrypt.hash('admin123', 10);
+          await pool.query(
+            'INSERT INTO users (firstname, lastname, email, password, role, phone, city) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            ['Admin', 'CEB', adminEmail, hashedPassword, 'admin', '3001234567', 'Bogotá']
+          );
+          console.log('✅ Admin creado (producción): admin@ceb.com / admin123');
+        } else {
+          console.log('ℹ️  Admin ya existe en producción');
+        }
+      } catch (selectError) {
+        console.log('⚠️  No se pudo verificar admin existente (tabla puede tener estructura diferente):', selectError.message);
       }
     } catch (error) {
       console.error('Error creando admin en producción:', error);
