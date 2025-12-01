@@ -39,8 +39,8 @@ router.get('/products', async (req, res) => {
       id: product.id,
       title: product.title,
       description: product.description,
-      basicPrice: product.basicprice,
-      trainingPrice: product.trainingprice,
+      basicPrice: product.basicPrice,
+      trainingPrice: product.trainingPrice,
       difficulty: product.difficulty,
       sizes: (() => {
         try {
@@ -54,7 +54,7 @@ router.get('/products', async (req, res) => {
       imageUrl: product.imageurl,
       patronista: `${product.patronistafirstname || ''} ${product.patronistalastname || ''}`.trim(),
       category: product.categoryname,
-      createdAt: product.createdat
+      createdAt: product.createdAt
     }));
 
     res.json({
@@ -106,8 +106,8 @@ router.get('/products/:id', async (req, res) => {
       id: product.id,
       title: product.title,
       description: product.description,
-      basicPrice: product.basicprice,
-      trainingPrice: product.trainingprice,
+      basicPrice: product.basicPrice,
+      trainingPrice: product.trainingPrice,
       difficulty: product.difficulty,
       sizes: (() => {
         try {
@@ -121,7 +121,7 @@ router.get('/products/:id', async (req, res) => {
       imageUrl: product.imageurl,
       patronista: `${product.patronistafirstname || ''} ${product.patronistalastname || ''}`.trim(),
       category: product.categoryname,
-      createdAt: product.createdat
+      createdAt: product.createdAt
     };
 
     res.json({

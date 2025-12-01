@@ -24,7 +24,7 @@ router.get('/download/:fileId', auth, async (req, res) => {
     }
 
     const file = fileQuery.rows[0];
-    const productId = file['productId'];
+    const productId = file.productId;
 
     // 2. Verificar que el usuario tiene acceso al archivo
     // El usuario debe tener un pedido PAGADO que contenga este producto
@@ -45,11 +45,11 @@ router.get('/download/:fileId', auth, async (req, res) => {
     }
 
     // 3. Enviar el archivo
-    const filePath = path.join(__dirname, '..', file['filePath']);
+    const filePath = path.join(__dirname, '..', file.filePath);
 
     try {
       await fs.access(filePath);
-      res.download(filePath, file['fileName'], (err) => {
+      res.download(filePath, file.fileName, (err) => {
         if (err) {
           console.error('Error enviando archivo:', err);
           res.status(500).json({ message: 'Error descargando archivo' });

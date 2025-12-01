@@ -87,7 +87,7 @@ router.post('/create-order', auth, async (req, res) => {
 
       // Actualizar orden con paymentId
       await pool.query(
-        'UPDATE orders SET "paymentId" = $1 WHERE id = $2',
+        'UPDATE orders SET paymentid = $1 WHERE id = $2',
         [paymentResult.data.paymentId, orderId]
       );
 
@@ -146,8 +146,8 @@ router.get('/status/:orderId', auth, async (req, res) => {
     const order = orderResult.rows[0];
 
     // Si tiene paymentId de Wompi, consultar estado
-    if (order['paymentId']) {
-      const statusResult = await wompiService.getTransactionStatus(order['paymentId']);
+    if (order.paymentId) {
+      const statusResult = await wompiService.getTransactionStatus(order.paymentId);
 
       if (statusResult.success) {
         // Actualizar estado de la orden si cambió
@@ -167,7 +167,7 @@ router.get('/status/:orderId', auth, async (req, res) => {
           total: order.total,
           paymentStatus: statusResult.data.status,
           paymentMethod: statusResult.data.paymentMethod,
-          createdAt: order['createdAt']
+          createdAt: order.createdAt
         });
       }
     }
@@ -177,7 +177,7 @@ router.get('/status/:orderId', auth, async (req, res) => {
       orderId: order.id,
       status: order.status,
       total: order.total,
-      createdAt: order['createdAt']
+      createdAt: order.createdAt
     });
 
   } catch (error) {
@@ -227,7 +227,7 @@ router.post('/webhook', async (req, res) => {
     const newStatus = wompiService.mapPaymentStatus(status);
 
     await pool.query(
-      'UPDATE orders SET status = $1, "paymentId" = $2 WHERE id = $3',
+      'UPDATE orders SET status = $1, paymentid = $2 WHERE id = $3',
       [newStatus, transactionId, orderId]
     );
 
