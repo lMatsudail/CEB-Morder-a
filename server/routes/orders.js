@@ -70,15 +70,28 @@ router.get('/my-orders', auth, async (req, res) => {
         o.status,
         o."paymentMethod",
         o."paymentId",
-        o."createdAt",
-        o."updatedAt",
+        o."createdAt" as createdat,
+        o."updatedAt" as updatedat,
         json_agg(
           json_build_object(
+            'id', oi.id,
             'productId', oi."productId",
             'productTitle', p.title,
             'optionType', oi."optionType",
             'price', oi.price,
-            'quantity', oi.quantity
+            'quantity', oi.quantity,
+            'files', (
+              SELECT json_agg(
+                json_build_object(
+                  'id', pf.id,
+                  'filename', pf."fileName",
+                  'filepath', pf."filePath",
+                  'filetype', pf."fileType"
+                )
+              )
+              FROM product_files pf
+              WHERE pf."productId" = oi."productId" AND pf."fileType" IN ('pattern', 'document')
+            )
           )
         ) as items
       FROM orders o

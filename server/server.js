@@ -73,6 +73,7 @@ app.use('/api/orders', require('./routes/orders'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/admin', require('./routes/admin')); // Rutas de administrador
 app.use('/api/payments', require('./routes/payments')); // Rutas de pagos Wompi
+app.use('/api/files', require('./routes/files')); // Descargas de archivos protegidas
 
 // Ruta de prueba
 app.get('/api/health', (req, res) => {

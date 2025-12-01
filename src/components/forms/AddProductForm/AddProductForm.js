@@ -184,8 +184,14 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
     if (formData.sizes.length === 0) newErrors.sizes = 'Selecciona al menos una talla';
     if (!formData.basicPrice || formData.basicPrice <= 0) newErrors.basicPrice = 'Precio básico válido es requerido';
     
+    // Validar que tenga al menos una imagen
     if (!isEditing && images.length === 0) {
       newErrors.images = 'Al menos una imagen es requerida';
+    }
+
+    // Validar que tenga al menos un archivo de molde (.PDS u otro)
+    if (!isEditing && patternFiles.length === 0) {
+      newErrors.patterns = 'Al menos un archivo de molde es requerido';
     }
 
     if (formData.trainingPrice && formData.trainingPrice <= formData.basicPrice) {
@@ -199,8 +205,17 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    console.log('🔍 Iniciando submit del formulario...');
+    console.log('📋 Datos del formulario:', formData);
+    console.log('🖼️ Imágenes:', images);
+    console.log('📁 Archivos de patrón:', patternFiles);
+    
+    if (!validateForm()) {
+      console.log('❌ Validación fallida:', errors);
+      return;
+    }
 
+    console.log('✅ Validación exitosa, enviando datos...');
     setLoading(true);
 
     try {
@@ -220,15 +235,21 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
         files: patternFiles.map(p => p.file)
       };
 
+      console.log('📦 Datos preparados para envío:', productData);
+
       let result;
 
       if (isEditing) {
+        console.log('✏️ Actualizando producto existente...');
         // Actualizar producto existente
         result = await productService.updateProduct(productToEdit.id, productData);
       } else {
+        console.log('➕ Creando nuevo producto...');
         // Crear nuevo producto
         result = await productService.createProduct(productData);
       }
+
+      console.log('✅ Producto guardado exitosamente:', result);
 
       // Notificar al componente padre
       onProductAdded(result);
@@ -261,10 +282,12 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
       }
       
     } catch (error) {
+      console.error('❌ Error guardando producto:', error);
+      console.error('📄 Detalles del error:', error.response?.data || error.message);
       const errorMessage = isEditing ? 
         'Error al actualizar el producto. Intenta nuevamente.' : 
         'Error al crear el producto. Intenta nuevamente.';
-      setErrors({ submit: errorMessage });
+      setErrors({ submit: error.response?.data?.message || errorMessage });
     } finally {
       setLoading(false);
     }
