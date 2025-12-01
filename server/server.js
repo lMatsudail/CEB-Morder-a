@@ -82,6 +82,20 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Ruta de salud de base de datos (simple)
+app.get('/api/health/db', async (req, res) => {
+  try {
+    const result = await db.query('SELECT current_database() as db, inet_server_addr() as host');
+    res.json({
+      database: result.rows[0]?.db || 'desconocida',
+      host: result.rows[0]?.host || 'desconocido'
+    });
+  } catch (error) {
+    console.error('Health DB error:', error);
+    res.status(500).json({ message: 'DB no disponible' });
+  }
+});
+
 // Manejo de errores
 app.use((err, req, res, next) => {
   console.error(err.stack);

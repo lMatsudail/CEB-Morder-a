@@ -2,6 +2,10 @@ const { Pool } = require('pg');
 require('dotenv').config();
 
 // Pool de conexiones a PostgreSQL
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL no está definida. Configura la variable de entorno en Render.');
+}
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }, // Requerido para Render
@@ -148,10 +152,36 @@ const database = {
         await pool.query(query);
       }
       console.log('Todas las tablas creadas correctamente');
-      await database.insertSampleData();
+      // Semillas solo en desarrollo, producción únicamente crea admin
+      if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_SEED === 'true') {
+        await database.insertSampleData();
+      } else {
+        await database.ensureAdminUser();
+      }
     } catch (error) {
       console.error('Error creando tablas:', error);
       throw error;
+    }
+  },
+
+  // Crear admin en producción; datos de ejemplo solo en desarrollo
+  ensureAdminUser: async () => {
+    try {
+      const bcrypt = require('bcryptjs');
+      const adminEmail = 'admin@ceb.com';
+      const adminCheck = await pool.query('SELECT id FROM users WHERE email = $1', [adminEmail]);
+      if (adminCheck.rows.length === 0) {
+        const hashedPassword = await bcrypt.hash('admin123', 10);
+        await pool.query(
+          'INSERT INTO users (firstname, lastname, email, password, role, phone, city) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+          ['Admin', 'CEB', adminEmail, hashedPassword, 'admin', '3001234567', 'Bogotá']
+        );
+        console.log('✅ Admin creado (producción): admin@ceb.com / admin123');
+      } else {
+        console.log('ℹ️  Admin ya existe en producción');
+      }
+    } catch (error) {
+      console.error('Error creando admin en producción:', error);
     }
   },
 
@@ -159,21 +189,6 @@ const database = {
   insertSampleData: async () => {
     try {
       const bcrypt = require('bcryptjs');
-      
-      // CREAR USUARIO ADMINISTRADOR POR DEFECTO
-      const adminEmail = 'admin@ceb.com';
-      const adminCheck = await pool.query('SELECT id FROM users WHERE email = $1', [adminEmail]);
-      
-      if (adminCheck.rows.length === 0) {
-        const hashedPassword = await bcrypt.hash('admin123', 10);
-        await pool.query(
-          'INSERT INTO users (firstname, lastname, email, password, role, phone, city) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-          ['Admin', 'CEB', adminEmail, hashedPassword, 'admin', '3001234567', 'Bogotá']
-        );
-        console.log('✅ Usuario administrador creado: admin@ceb.com / admin123');
-      } else {
-        console.log('ℹ️  Usuario administrador ya existe');
-      }
       
       const categories = [
         { name: 'Vestidos', description: 'Moldes para vestidos de todo tipo' },
@@ -190,10 +205,10 @@ const database = {
         );
       }
 
-      // Insertar usuarios patronistas de ejemplo
+      // Insertar usuarios patronistas de ejemplo (solo desarrollo)
       const patronistas = [
-        { firstname: 'María', lastname: 'García', email: 'maria@molderia.com', password: '$2a$10$YourHashedPasswordHere', role: 'patronista', phone: '1234567890', city: 'Buenos Aires' },
-        { firstname: 'Carlos', lastname: 'López', email: 'carlos@molderia.com', password: '$2a$10$YourHashedPasswordHere', role: 'patronista', phone: '0987654321', city: 'Madrid' }
+        { firstname: 'María', lastname: 'García', email: 'maria@molderia.com', password: await bcrypt.hash('maria123', 10), role: 'patronista', phone: '1234567890', city: 'Buenos Aires' },
+        { firstname: 'Carlos', lastname: 'López', email: 'carlos@molderia.com', password: await bcrypt.hash('carlos123', 10), role: 'patronista', phone: '0987654321', city: 'Madrid' }
       ];
 
       for (const patronista of patronistas) {
