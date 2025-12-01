@@ -152,4 +152,47 @@ router.get('/:orderId', auth, async (req, res) => {
   }
 });
 
+// Obtener pedidos asociados a los productos del patronista autenticado
+router.get('/patronista-orders', auth, async (req, res) => {
+  try {
+    const patronistaId = req.user.userId;
+    const pool = database.getPool();
+
+    const query = `
+      SELECT 
+        o.id,
+        o.clienteid,
+        o.total,
+        o.status,
+        o.paymentmethod,
+        o.paymentid,
+        o.createdat,
+        o.updatedat,
+        json_agg(
+          json_build_object(
+            'id', oi.id,
+            'productId', oi.productid,
+            'productTitle', p.title,
+            'optionType', oi.optiontype,
+            'price', oi.price,
+            'quantity', oi.quantity
+          )
+        ) as items
+      FROM orders o
+      INNER JOIN order_items oi ON o.id = oi.orderid
+      INNER JOIN products p ON oi.productid = p.id
+      WHERE p.patronistaid = $1
+      GROUP BY o.id
+      ORDER BY o.createdat DESC
+    `;
+
+    const result = await pool.query(query, [patronistaId]);
+    res.json(result.rows);
+
+  } catch (error) {
+    console.error('Error en GET /orders/patronista-orders:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
 module.exports = router;
