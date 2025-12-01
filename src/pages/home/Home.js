@@ -7,6 +7,13 @@ const Home = () => {
   const heroParallax = useParallax(0.5);
   const featuresParallax = useParallax(0.3);
   const pricingParallax = useParallax(0.2);
+
+  // URLs de imágenes de Cloudinary - Actualiza estas URLs con tus imágenes
+  const images = {
+    hero: 'https://res.cloudinary.com/TU_CLOUD_NAME/image/upload/v1/ceb/hero-bg.jpg',
+    features: 'https://res.cloudinary.com/TU_CLOUD_NAME/image/upload/v1/ceb/features-bg.jpg',
+    pricing: 'https://res.cloudinary.com/TU_CLOUD_NAME/image/upload/v1/ceb/pricing-bg.jpg'
+  };
   const features = [
     {
       icon: '📐',
@@ -62,7 +69,10 @@ const Home = () => {
       <section className="hero">
         <div 
           className="hero-background" 
-          style={{ transform: `translateY(${heroParallax}px)` }}
+          style={{ 
+            transform: `translateY(${heroParallax}px)`,
+            backgroundImage: `url(${images.hero})`
+          }}
         />
         <div className="container">
           <div className="hero-content">
@@ -97,7 +107,10 @@ const Home = () => {
       <section className="features">
         <div 
           className="features-background" 
-          style={{ transform: `translateY(${featuresParallax}px)` }}
+          style={{ 
+            transform: `translateY(${featuresParallax}px)`,
+            backgroundImage: `url(${images.features})`
+          }}
         />
         <div className="container">
           <h2 className="section-title">¿Por qué elegir CEB Moldería?</h2>
@@ -117,7 +130,10 @@ const Home = () => {
       <section className="pricing">
         <div 
           className="pricing-background" 
-          style={{ transform: `translateY(${pricingParallax}px)` }}
+          style={{ 
+            transform: `translateY(${pricingParallax}px)`,
+            backgroundImage: `url(${images.pricing})`
+          }}
         />
         <div className="container">
           <h2 className="section-title">Nuestros Paquetes</h2>

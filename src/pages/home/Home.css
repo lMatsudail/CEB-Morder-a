@@ -18,11 +18,25 @@
   left: 0;
   right: 0;
   bottom: -50%;
+  /* La imagen se establece mediante style inline desde el componente */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+  will-change: transform;
+  opacity: 0.3;
+}
+
+.hero-background::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: linear-gradient(135deg, rgba(252, 200, 1, 0.15) 0%, rgba(148, 115, 0, 0.1) 50%, transparent 100%);
   background-size: 200% 200%;
   animation: gradientShift 15s ease infinite;
-  z-index: 0;
-  will-change: transform;
 }
 
 @keyframes gradientShift {
@@ -113,9 +127,23 @@
   left: 0;
   right: 0;
   bottom: -20%;
-  background: radial-gradient(circle at 70% 30%, rgba(252, 200, 1, 0.05), transparent 60%);
+  /* La imagen se establece mediante style inline desde el componente */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   z-index: 0;
   will-change: transform;
+  opacity: 0.15;
+}
+
+.features-background::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 70% 30%, rgba(252, 200, 1, 0.05), transparent 60%);
 }
 
 .features .container {
@@ -193,9 +221,23 @@
   left: 0;
   right: 0;
   bottom: -30%;
-  background: linear-gradient(225deg, rgba(252, 200, 1, 0.1) 0%, transparent 70%);
+  /* La imagen se establece mediante style inline desde el componente */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   z-index: 0;
   will-change: transform;
+  opacity: 0.2;
+}
+
+.pricing-background::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(225deg, rgba(252, 200, 1, 0.1) 0%, transparent 70%);
 }
 
 .pricing .container {
