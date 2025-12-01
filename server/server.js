@@ -113,6 +113,32 @@ app.get('/api/health/db', async (req, res) => {
   }
 });
 
+// Ruta para inspeccionar el esquema de la BD (diagnóstico)
+app.get('/api/health/schema', async (req, res) => {
+  try {
+    // Obtener información de todas las tablas y columnas
+    const result = await db.query(`
+      SELECT 
+        t.tablename,
+        array_agg(a.attname ORDER BY a.attnum) as columns
+      FROM pg_tables t
+      JOIN pg_class c ON c.relname = t.tablename
+      JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum > 0
+      WHERE t.schemaname = 'public'
+      GROUP BY t.tablename
+      ORDER BY t.tablename
+    `);
+    
+    res.json({
+      tables: result.rows,
+      message: 'Esquema de la BD actual'
+    });
+  } catch (error) {
+    console.error('Schema inspection error:', error);
+    res.status(500).json({ message: 'Error inspeccionando esquema', error: error.message });
+  }
+});
+
 // Manejo de errores
 app.use((err, req, res, next) => {
   console.error(err.stack);
