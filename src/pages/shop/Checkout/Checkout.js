@@ -15,7 +15,6 @@ const Checkout = () => {
   const [error, setError] = useState(null);
 
   const orderId = searchParams.get('orderId');
-  const paymentStatus = searchParams.get('status'); // Wompi redirige con ?status=APPROVED
 
   useEffect(() => {
     if (!user) {
