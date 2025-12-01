@@ -75,12 +75,22 @@ router.get('/my-products', auth, async (req, res) => {
 
     const query = `
       SELECT 
-        p.*,
+        p.id,
+        p.title,
+        p.description,
+        p.basicprice,
+        p.trainingprice,
+        p.difficulty,
+        p.sizes,
+        p.active,
+        p.createdat,
+        p.updatedat,
+        p.categoryid,
         c.name as "categoryName"
       FROM products p
-      LEFT JOIN categories c ON p."categoryId" = c.id
-      WHERE p."patronistaId" = $1
-      ORDER BY p."createdAt" DESC
+      LEFT JOIN categories c ON p.categoryid = c.id
+      WHERE p.patronistaid = $1
+      ORDER BY p.createdat DESC
     `;
 
     const result = await pool.query(query, [userId]);
