@@ -1,8 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import useParallax from '../../hooks/useParallax';
 import './Home.css';
 
 const Home = () => {
+  const heroParallax = useParallax(0.5);
+  const featuresParallax = useParallax(0.3);
+  const pricingParallax = useParallax(0.2);
   const features = [
     {
       icon: '📐',
@@ -56,6 +60,10 @@ const Home = () => {
     <div className="home">
       {/* Hero Section */}
       <section className="hero">
+        <div 
+          className="hero-background" 
+          style={{ transform: `translateY(${heroParallax}px)` }}
+        />
         <div className="container">
           <div className="hero-content">
             <div className="hero-text">
@@ -87,6 +95,10 @@ const Home = () => {
 
       {/* Features Section */}
       <section className="features">
+        <div 
+          className="features-background" 
+          style={{ transform: `translateY(${featuresParallax}px)` }}
+        />
         <div className="container">
           <h2 className="section-title">¿Por qué elegir CEB Moldería?</h2>
           <div className="features-grid">
@@ -103,6 +115,10 @@ const Home = () => {
 
       {/* Pricing Section */}
       <section className="pricing">
+        <div 
+          className="pricing-background" 
+          style={{ transform: `translateY(${pricingParallax}px)` }}
+        />
         <div className="container">
           <h2 className="section-title">Nuestros Paquetes</h2>
           <div className="pricing-grid">

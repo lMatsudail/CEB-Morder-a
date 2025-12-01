@@ -9,6 +9,32 @@
   padding: 120px 0 100px;
   position: relative;
   overflow: hidden;
+  min-height: 100vh;
+}
+
+.hero-background {
+  position: absolute;
+  top: -50%;
+  left: 0;
+  right: 0;
+  bottom: -50%;
+  background: linear-gradient(135deg, rgba(252, 200, 1, 0.15) 0%, rgba(148, 115, 0, 0.1) 50%, transparent 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 15s ease infinite;
+  z-index: 0;
+  will-change: transform;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .hero::before {
@@ -18,8 +44,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(45deg, rgba(252, 200, 1, 0.1), transparent);
+  background: radial-gradient(circle at 30% 50%, rgba(252, 200, 1, 0.08), transparent 50%);
   z-index: 1;
+  pointer-events: none;
 }
 
 .hero-content {
@@ -76,6 +103,24 @@
 .features {
   padding: 100px 0;
   background-color: var(--brand-white);
+  position: relative;
+  overflow: hidden;
+}
+
+.features-background {
+  position: absolute;
+  top: -20%;
+  left: 0;
+  right: 0;
+  bottom: -20%;
+  background: radial-gradient(circle at 70% 30%, rgba(252, 200, 1, 0.05), transparent 60%);
+  z-index: 0;
+  will-change: transform;
+}
+
+.features .container {
+  position: relative;
+  z-index: 1;
 }
 
 .section-title {
@@ -138,6 +183,24 @@
 .pricing {
   padding: 100px 0;
   background-color: var(--brand-black);
+  position: relative;
+  overflow: hidden;
+}
+
+.pricing-background {
+  position: absolute;
+  top: -30%;
+  left: 0;
+  right: 0;
+  bottom: -30%;
+  background: linear-gradient(225deg, rgba(252, 200, 1, 0.1) 0%, transparent 70%);
+  z-index: 0;
+  will-change: transform;
+}
+
+.pricing .container {
+  position: relative;
+  z-index: 1;
 }
 
 .pricing .section-title {
@@ -257,6 +320,24 @@
   padding: 100px 0;
   background: linear-gradient(45deg, rgba(148, 115, 0, 0.1), transparent);
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(252, 200, 1, 0.08), transparent 60%);
+  z-index: 0;
+}
+
+.cta-content {
+  position: relative;
+  z-index: 1;
 }
 
 .cta-content h2 {
