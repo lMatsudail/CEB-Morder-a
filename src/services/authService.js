@@ -1,7 +1,9 @@
 import axios from 'axios';
 
-// Crear instancia de axios sin baseURL para que use el proxy
+// Configurar baseURL según entorno (Render usa REACT_APP_API_URL)
+const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 const apiClient = axios.create({
+  baseURL: apiUrl,
   timeout: 10000,
 });
 
