@@ -44,6 +44,16 @@ router.get('/test-auth', auth, async (req, res) => {
   });
 });
 
+// RUTA TEMPORAL DE PRUEBA - SIN AUTH
+router.get('/my-products-test', async (req, res) => {
+  console.log('🧪 ENDPOINT /my-products-test EJECUTÁNDOSE (SIN AUTH)');
+  res.json({ 
+    success: true, 
+    message: 'Ruta /my-products-test funciona correctamente',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Obtener productos del patronista autenticado (debe ir ANTES de /:id)
 router.get('/my-products', auth, async (req, res) => {
   console.log('🔥 ENDPOINT /my-products EJECUTÁNDOSE');
