@@ -30,9 +30,9 @@ const Login = () => {
       const response = await login(formData.email, formData.password);
       
       // Redirigir según el rol del usuario
-      if (response.user.role === 'admin') {
+      if (response?.user?.role === 'admin') {
         navigate('/admin');
-      } else if (response.user.role === 'patronista') {
+      } else if (response?.user?.role === 'patronista') {
         navigate('/patronista');
       } else {
         navigate('/cliente');
