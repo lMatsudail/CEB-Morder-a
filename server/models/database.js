@@ -225,8 +225,8 @@ const database = {
   // Insertar datos de ejemplo
   insertSampleData: async () => {
     try {
-      const bcrypt = require('bcryptjs');
-      
+      // SOLO crear categorías básicas (necesarias para la funcionalidad)
+      // NO crear usuarios ni productos - para que alimentes manualmente con datos reales
       const categories = [
         { name: 'Vestidos', description: 'Moldes para vestidos de todo tipo' },
         { name: 'Blusas', description: 'Blusas casuales y formales' },
@@ -242,38 +242,10 @@ const database = {
         );
       }
 
-      // Insertar usuarios patronistas de ejemplo (solo desarrollo)
-      const patronistas = [
-        { firstName: 'María', lastName: 'García', email: 'maria@molderia.com', password: await bcrypt.hash('maria123', 10), role: 'patronista', phone: '1234567890', city: 'Buenos Aires' },
-        { firstName: 'Carlos', lastName: 'López', email: 'carlos@molderia.com', password: await bcrypt.hash('carlos123', 10), role: 'patronista', phone: '0987654321', city: 'Madrid' }
-      ];
-
-      for (const patronista of patronistas) {
-        await pool.query(
-          'INSERT INTO users ("firstName", "lastName", email, password, role, phone, city) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (email) DO NOTHING',
-          [patronista.firstName, patronista.lastName, patronista.email, patronista.password, patronista.role, patronista.phone, patronista.city]
-        );
-      }
-
-      // Insertar productos de ejemplo
-      const products = [
-        { patronistaId: 1, title: 'Vestido Casual Elegante', description: 'Molde de vestido casual con corte elegante y ajustable', categoryId: 1, basicPrice: 25.00, trainingPrice: 40.00, difficulty: 'Intermedio', sizes: '["XS", "S", "M", "L", "XL"]' },
-        { patronistaId: 1, title: 'Blusa Floral Moderna', description: 'Blusa con diseño floral moderno y mangas ajustables', categoryId: 2, basicPrice: 18.00, trainingPrice: 30.00, difficulty: 'Principiante', sizes: '["S", "M", "L"]' },
-        { patronistaId: 2, title: 'Pantalón Slim Fit', description: 'Pantalón slim fit con bolsillos laterales y cierre moderno', categoryId: 3, basicPrice: 30.00, trainingPrice: 45.00, difficulty: 'Intermedio', sizes: '["28", "30", "32", "34", "36"]' },
-        { patronistaId: 2, title: 'Falda Plisada Clásica', description: 'Falda plisada de corte clásico con cintura alta', categoryId: 4, basicPrice: 22.00, trainingPrice: 35.00, difficulty: 'Intermedio', sizes: '["XS", "S", "M", "L"]' },
-        { patronistaId: 1, title: 'Chaqueta Blazer Profesional', description: 'Chaqueta blazer de corte profesional para oficina', categoryId: 5, basicPrice: 45.00, trainingPrice: 60.00, difficulty: 'Avanzado', sizes: '["S", "M", "L", "XL"]' }
-      ];
-
-      for (const product of products) {
-        await pool.query(
-          'INSERT INTO products ("patronistaId", title, description, "categoryId", "basicPrice", "trainingPrice", difficulty, sizes, active) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true) ON CONFLICT DO NOTHING',
-          [product.patronistaId, product.title, product.description, product.categoryId, product.basicPrice, product.trainingPrice, product.difficulty, product.sizes]
-        );
-      }
-
-      console.log('Datos de ejemplo insertados correctamente');
+      console.log('✅ Categorías inicializadas correctamente');
+      console.log('ℹ️  BASE DE DATOS LISTA - Registra usuarios y crea moldes manualmente');
     } catch (error) {
-      console.error('Error insertando datos de ejemplo:', error);
+      console.error('Error inicializando categorías:', error);
     }
   },
 
