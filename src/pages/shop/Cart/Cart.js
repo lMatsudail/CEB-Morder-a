@@ -13,7 +13,7 @@ const Cart = () => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedMethods, setSelectedMethods] = useState(['CARD']); // métodos por defecto
+  const [selectedMethod, setSelectedMethod] = useState('CARD'); // un único método por defecto
 
   const paymentMethodOptions = [
     { code: 'CARD', label: 'Tarjeta (Crédito/Débito)' },
@@ -23,14 +23,8 @@ const Cart = () => {
     { code: 'CASH', label: 'Efectivo (Efecty)' }
   ];
 
-  const toggleMethod = (code) => {
-    setSelectedMethods(prev => {
-      if (prev.includes(code)) {
-        return prev.filter(m => m !== code);
-      } else {
-        return [...prev, code];
-      }
-    });
+  const handleMethodChange = (code) => {
+    setSelectedMethod(code);
   };
 
   const formatPrice = (price) => {
@@ -70,11 +64,11 @@ const Cart = () => {
 
       // Crear orden y obtener link de pago de Wompi
       const token = localStorage.getItem('token');
-      const methodsToSend = selectedMethods.length ? selectedMethods : ['CARD'];
+      const methodToSend = selectedMethod || 'CARD';
 
       const response = await axios.post(
         `${API_URL}/api/payments/create-order`,
-        { items, paymentMethods: methodsToSend },
+        { items, paymentMethods: [methodToSend] },
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -84,9 +78,9 @@ const Cart = () => {
       );
 
       if (response.data.payment && response.data.payment.paymentUrl) {
-        // Persistir métodos seleccionados para mostrarlos en checkout
+        // Persistir método seleccionado para mostrarlo en checkout
         try {
-          localStorage.setItem('selectedPaymentMethods', JSON.stringify(methodsToSend));
+          localStorage.setItem('selectedPaymentMethods', JSON.stringify([methodToSend]));
         } catch (e) {
           console.warn('No se pudo guardar selectedPaymentMethods', e);
         }
@@ -238,27 +232,41 @@ const Cart = () => {
             borderRadius: '8px',
             backgroundColor: 'var(--brand-white)'
           }}>
-            <h4 style={{ marginBottom: '10px' }}>Medios de Pago</h4>
-            <p style={{ fontSize: '12px', color: '#444', marginBottom: '8px' }}>
-              Selecciona los métodos que deseas habilitar en el checkout de Wompi. Solo se mostrarán los activos en tu cuenta.
+            <h4 style={{ marginBottom: '10px' }}>Medio de Pago</h4>
+            <p style={{ fontSize: '12px', color: '#444', marginBottom: '10px' }}>
+              Selecciona el método de pago que utilizarás en el checkout de Wompi.
             </p>
-            <div className="methods-grid" style={{ display: 'grid', gap: '6px' }}>
+            <div className="methods-grid" style={{ display: 'grid', gap: '8px' }}>
               {paymentMethodOptions.map(opt => (
-                <label key={opt.code} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '14px' }}>
+                <label 
+                  key={opt.code} 
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px', 
+                    fontSize: '14px',
+                    padding: '8px',
+                    borderRadius: '6px',
+                    border: selectedMethod === opt.code ? '2px solid var(--brand-yellow)' : '1px solid #ddd',
+                    backgroundColor: selectedMethod === opt.code ? '#fffbeb' : 'white',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
                   <input
-                    type="checkbox"
-                    checked={selectedMethods.includes(opt.code)}
-                    onChange={() => toggleMethod(opt.code)}
+                    type="radio"
+                    name="paymentMethod"
+                    value={opt.code}
+                    checked={selectedMethod === opt.code}
+                    onChange={() => handleMethodChange(opt.code)}
+                    style={{ cursor: 'pointer' }}
                   />
-                  {opt.label}
+                  <span style={{ fontWeight: selectedMethod === opt.code ? 'bold' : 'normal' }}>
+                    {opt.label}
+                  </span>
                 </label>
               ))}
             </div>
-            {selectedMethods.length === 0 && (
-              <div style={{ marginTop: '8px', fontSize: '12px', color: '#c00' }}>
-                Debes seleccionar al menos un método. Usaremos TARJETA por defecto si no eliges.
-              </div>
-            )}
           </div>
 
           <div className="cart-actions">
