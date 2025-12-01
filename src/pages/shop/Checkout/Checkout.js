@@ -15,6 +15,24 @@ const Checkout = () => {
   const [error, setError] = useState(null);
 
   const orderId = searchParams.get('orderId');
+  const methodNames = {
+    CARD: 'Tarjeta',
+    PSE: 'PSE (Transferencia Bancaria)',
+    NEQUI: 'Nequi',
+    BANCOLOMBIA_TRANSFER: 'Bancolombia Transfer',
+    CASH: 'Efectivo / Punto físico'
+  };
+
+  const selectedMethods = (() => {
+    try {
+      const raw = localStorage.getItem('selectedPaymentMethods');
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+      return [];
+    }
+  })();
 
   useEffect(() => {
     if (!user) {
@@ -115,6 +133,18 @@ const Checkout = () => {
           <p className="success-message">
             Tu pago ha sido procesado correctamente
           </p>
+          {selectedMethods.length > 0 && (
+            <div className="payment-methods-summary">
+              <h4>Métodos habilitados en el checkout</h4>
+              <div className="methods-badges">
+                {selectedMethods.map(m => (
+                  <span key={m} className="method-badge">
+                    {methodNames[m] || m}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           
           {orderData && (
             <div className="order-details">
@@ -169,6 +199,18 @@ const Checkout = () => {
           <p className="failed-message">
             Tu pago no pudo ser procesado
           </p>
+          {selectedMethods.length > 0 && (
+            <div className="payment-methods-summary">
+              <h4>Métodos que intentaste habilitar</h4>
+              <div className="methods-badges">
+                {selectedMethods.map(m => (
+                  <span key={m} className="method-badge">
+                    {methodNames[m] || m}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
           
           {orderData && (
             <div className="order-details">
@@ -215,6 +257,21 @@ const Checkout = () => {
         <p className="pending-message">
           Estamos esperando la confirmación de tu pago
         </p>
+        {selectedMethods.length > 0 && (
+          <div className="payment-methods-summary">
+            <h4>Métodos seleccionados</h4>
+            <div className="methods-badges">
+              {selectedMethods.map(m => (
+                <span key={m} className="method-badge">
+                  {methodNames[m] || m}
+                </span>
+              ))}
+            </div>
+            <p className="methods-hint">
+              {selectedMethods.includes('PSE') || selectedMethods.includes('CASH') ? 'Recuerda: métodos como PSE o efectivo pueden tardar más en confirmarse.' : 'La confirmación usualmente es rápida con métodos seleccionados.'}
+            </p>
+          </div>
+        )}
         
         {orderData && (
           <div className="order-details">

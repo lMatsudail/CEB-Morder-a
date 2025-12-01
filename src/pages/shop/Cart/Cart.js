@@ -84,6 +84,12 @@ const Cart = () => {
       );
 
       if (response.data.payment && response.data.payment.paymentUrl) {
+        // Persistir métodos seleccionados para mostrarlos en checkout
+        try {
+          localStorage.setItem('selectedPaymentMethods', JSON.stringify(methodsToSend));
+        } catch (e) {
+          console.warn('No se pudo guardar selectedPaymentMethods', e);
+        }
         // Limpiar carrito antes de redirigir a Wompi
         clearCart();
         
