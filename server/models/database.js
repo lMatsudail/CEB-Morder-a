@@ -228,16 +228,28 @@ const database = {
       // SOLO crear categorías básicas (necesarias para la funcionalidad)
       // NO crear usuarios ni productos - para que alimentes manualmente con datos reales
       const categories = [
-        { name: 'Vestidos', description: 'Moldes para vestidos de todo tipo' },
-        { name: 'Blusa', description: 'Blusas casuales y formales' },
-        { name: 'Pantalones', description: 'Pantalones y jeans' },
-        { name: 'Pantalón', description: 'Pantalón singular' },
-        { name: 'Falda', description: 'Falda singular' },
-        { name: 'Faldas', description: 'Faldas de diferentes estilos' },
-        { name: 'Chaquetas', description: 'Chaquetas y blazers' },
-        { name: 'Camisa', description: 'Camisas de diferentes tipos' },
+        // Prendas principales
+        { name: 'Blusa', description: 'Blusas de todos los estilos' },
+        { name: 'Camisa', description: 'Camisas variadas' },
+        { name: 'Vestido', description: 'Vestidos de diferentes tipos' },
+        { name: 'Falda', description: 'Faldas de diferentes estilos' },
+        { name: 'Pantalón', description: 'Pantalones y jeans' },
         { name: 'Short', description: 'Shorts variados' },
-        { name: 'Vestido', description: 'Vestido singular' }
+        { name: 'Chaqueta', description: 'Chaquetas y blazers' },
+        { name: 'Abrigo', description: 'Abrigos de invierno' },
+        { name: 'Ropa Interior', description: 'Ropa interior y lencería' },
+        { name: 'Traje de Baño', description: 'Trajes de baño' },
+        { name: 'Ropa Deportiva', description: 'Prendas deportivas' },
+        { name: 'Otro', description: 'Otras prendas' },
+        // Variaciones plurales (para compatibilidad retroactiva)
+        { name: 'Blusas', description: 'Blusas de todos los estilos' },
+        { name: 'Camisas', description: 'Camisas variadas' },
+        { name: 'Vestidos', description: 'Vestidos de diferentes tipos' },
+        { name: 'Faldas', description: 'Faldas de diferentes estilos' },
+        { name: 'Pantalones', description: 'Pantalones y jeans' },
+        { name: 'Shorts', description: 'Shorts variados' },
+        { name: 'Chaquetas', description: 'Chaquetas y blazers' },
+        { name: 'Abrigos', description: 'Abrigos de invierno' }
       ];
 
       for (const category of categories) {

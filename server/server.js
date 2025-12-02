@@ -188,6 +188,48 @@ async function startServer() {
     await db.initialize();
     console.log('Base de datos inicializada correctamente');
     
+    // Sincronizar categorías automáticamente
+    try {
+      const pool = db.getPool();
+      const categories = [
+        { name: 'Blusa', description: 'Blusas de todos los estilos' },
+        { name: 'Camisa', description: 'Camisas variadas' },
+        { name: 'Vestido', description: 'Vestidos de diferentes tipos' },
+        { name: 'Falda', description: 'Faldas de diferentes estilos' },
+        { name: 'Pantalón', description: 'Pantalones y jeans' },
+        { name: 'Short', description: 'Shorts variados' },
+        { name: 'Chaqueta', description: 'Chaquetas y blazers' },
+        { name: 'Abrigo', description: 'Abrigos de invierno' },
+        { name: 'Ropa Interior', description: 'Ropa interior y lencería' },
+        { name: 'Traje de Baño', description: 'Trajes de baño' },
+        { name: 'Ropa Deportiva', description: 'Prendas deportivas' },
+        { name: 'Otro', description: 'Otras prendas' },
+        { name: 'Blusas', description: 'Blusas de todos los estilos' },
+        { name: 'Camisas', description: 'Camisas variadas' },
+        { name: 'Vestidos', description: 'Vestidos de diferentes tipos' },
+        { name: 'Faldas', description: 'Faldas de diferentes estilos' },
+        { name: 'Pantalones', description: 'Pantalones y jeans' },
+        { name: 'Shorts', description: 'Shorts variados' },
+        { name: 'Chaquetas', description: 'Chaquetas y blazers' },
+        { name: 'Abrigos', description: 'Abrigos de invierno' }
+      ];
+
+      let inserted = 0;
+      for (const category of categories) {
+        const result = await pool.query(
+          'INSERT INTO categories (name, description) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING id',
+          [category.name, category.description]
+        );
+        if (result.rows.length > 0) {
+          inserted++;
+        }
+      }
+      console.log(`✅ Sincronización de categorías en startup: ${inserted} nuevas insertadas`);
+    } catch (syncError) {
+      console.error('⚠️  Error sincronizando categorías en startup:', syncError.message);
+      // No fallar el servidor por esto
+    }
+    
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Servidor ejecutándose en puerto ${PORT}`);
       console.log(`Salud del servidor: http://localhost:${PORT}/api/health`);

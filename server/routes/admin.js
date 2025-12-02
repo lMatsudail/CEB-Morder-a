@@ -291,4 +291,63 @@ router.get('/products', async (req, res) => {
   }
 });
 
+// POST /api/admin/sync-categories - Sincronizar categorías desde el frontend
+// Este endpoint asegura que todas las categorías del frontend existan en la BD
+router.post('/sync-categories', async (req, res) => {
+  try {
+    const pool = database.getPool();
+    
+    // Categorías definidas en el frontend (de productConstants.js)
+    const categories = [
+      { name: 'Blusa', description: 'Blusas de todos los estilos' },
+      { name: 'Camisa', description: 'Camisas variadas' },
+      { name: 'Vestido', description: 'Vestidos de diferentes tipos' },
+      { name: 'Falda', description: 'Faldas de diferentes estilos' },
+      { name: 'Pantalón', description: 'Pantalones y jeans' },
+      { name: 'Short', description: 'Shorts variados' },
+      { name: 'Chaqueta', description: 'Chaquetas y blazers' },
+      { name: 'Abrigo', description: 'Abrigos de invierno' },
+      { name: 'Ropa Interior', description: 'Ropa interior y lencería' },
+      { name: 'Traje de Baño', description: 'Trajes de baño' },
+      { name: 'Ropa Deportiva', description: 'Prendas deportivas' },
+      { name: 'Otro', description: 'Otras prendas' },
+      // Variaciones plurales
+      { name: 'Blusas', description: 'Blusas de todos los estilos' },
+      { name: 'Camisas', description: 'Camisas variadas' },
+      { name: 'Vestidos', description: 'Vestidos de diferentes tipos' },
+      { name: 'Faldas', description: 'Faldas de diferentes estilos' },
+      { name: 'Pantalones', description: 'Pantalones y jeans' },
+      { name: 'Shorts', description: 'Shorts variados' },
+      { name: 'Chaquetas', description: 'Chaquetas y blazers' },
+      { name: 'Abrigos', description: 'Abrigos de invierno' }
+    ];
+
+    let inserted = 0;
+    for (const category of categories) {
+      const result = await pool.query(
+        'INSERT INTO categories (name, description) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING id',
+        [category.name, category.description]
+      );
+      if (result.rows.length > 0) {
+        inserted++;
+      }
+    }
+
+    console.log(`✅ Sincronización de categorías: ${inserted} nuevas insertadas`);
+
+    res.json({
+      message: 'Categorías sincronizadas correctamente',
+      inserted: inserted,
+      total: categories.length
+    });
+
+  } catch (error) {
+    console.error('❌ Error en POST /admin/sync-categories:', error);
+    res.status(500).json({ 
+      message: 'Error sincronizando categorías', 
+      error: error.message 
+    });
+  }
+});
+
 module.exports = router;
