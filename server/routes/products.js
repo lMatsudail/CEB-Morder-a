@@ -165,6 +165,19 @@ router.post('/', auth, requirePatronista, async (req, res) => {
 
     const pool = database.getPool();
 
+    // Buscar el ID de la categoría por nombre
+    let categoryId = null;
+    if (category) {
+      const categoryQuery = 'SELECT id FROM categories WHERE LOWER(name) = LOWER($1)';
+      const categoryResult = await pool.query(categoryQuery, [category]);
+      if (categoryResult.rows.length > 0) {
+        categoryId = categoryResult.rows[0].id;
+      } else {
+        console.log('⚠️  Categoría no encontrada:', category);
+        // Opcionalmente, podrías crear la categoría o devolver error
+      }
+    }
+
     const query = `
       INSERT INTO products ("patronistaId", title, description, "categoryId", "basicPrice", "trainingPrice", difficulty, sizes)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -175,7 +188,7 @@ router.post('/', auth, requirePatronista, async (req, res) => {
       patronistaId, 
       title, 
       description, 
-      category,
+      categoryId,
       basicPrice, 
       trainingPrice, 
       difficulty, 
@@ -186,7 +199,7 @@ router.post('/', auth, requirePatronista, async (req, res) => {
       patronistaId, 
       title, 
       description, 
-      category,
+      categoryId,
       basicPrice, 
       trainingPrice, 
       difficulty, 
