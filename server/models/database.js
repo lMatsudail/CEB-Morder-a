@@ -229,7 +229,7 @@ const database = {
       // NO crear usuarios ni productos - para que alimentes manualmente con datos reales
       const categories = [
         { name: 'Vestidos', description: 'Moldes para vestidos de todo tipo' },
-        { name: 'Blusas', description: 'Blusas casuales y formales' },
+        { name: 'Blusa', description: 'Blusas casuales y formales' },
         { name: 'Pantalones', description: 'Pantalones y jeans' },
         { name: 'Faldas', description: 'Faldas de diferentes estilos' },
         { name: 'Chaquetas', description: 'Chaquetas y blazers' }

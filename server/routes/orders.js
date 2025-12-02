@@ -111,48 +111,8 @@ router.get('/my-orders', auth, async (req, res) => {
   }
 });
 
-// Obtener pedido específico por ID
-router.get('/:orderId', auth, async (req, res) => {
-  try {
-    const { orderId } = req.params;
-    const userId = req.user.userId;
-    const pool = database.getPool();
-
-    const query = `
-      SELECT 
-        o.*,
-        json_agg(
-          json_build_object(
-            'productId', oi."productId",
-            'productTitle', p.title,
-            'optionType', oi."optionType",
-            'price', oi.price,
-            'quantity', oi.quantity
-          )
-        ) as items
-      FROM orders o
-      LEFT JOIN order_items oi ON o.id = oi."orderId"
-      LEFT JOIN products p ON oi."productId" = p.id
-      WHERE o.id = $1 AND o."clienteId" = $2
-      GROUP BY o.id
-    `;
-
-    const result = await pool.query(query, [orderId, userId]);
-    const order = result.rows[0];
-
-    if (!order) {
-      return res.status(404).json({ message: 'Pedido no encontrado' });
-    }
-
-    res.json(order);
-
-  } catch (error) {
-    console.error('Error en GET /orders/:orderId:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
-  }
-});
-
 // Obtener pedidos asociados a los productos del patronista autenticado
+// ⚠️ IMPORTANTE: Esto DEBE ir ANTES de /:orderId
 router.get('/patronista-orders', auth, async (req, res) => {
   try {
     const patronistaId = req.user.userId;
@@ -211,6 +171,47 @@ router.get('/patronista-orders', auth, async (req, res) => {
     console.error('❌ Error en GET /orders/patronista-orders:', error.message);
     console.error('Stack:', error.stack);
     res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+  }
+});
+
+// Obtener pedido específico por ID
+router.get('/:orderId', auth, async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user.userId;
+    const pool = database.getPool();
+
+    const query = `
+      SELECT 
+        o.*,
+        json_agg(
+          json_build_object(
+            'productId', oi."productId",
+            'productTitle', p.title,
+            'optionType', oi."optionType",
+            'price', oi.price,
+            'quantity', oi.quantity
+          )
+        ) as items
+      FROM orders o
+      LEFT JOIN order_items oi ON o.id = oi."orderId"
+      LEFT JOIN products p ON oi."productId" = p.id
+      WHERE o.id = $1 AND o."clienteId" = $2
+      GROUP BY o.id
+    `;
+
+    const result = await pool.query(query, [orderId, userId]);
+    const order = result.rows[0];
+
+    if (!order) {
+      return res.status(404).json({ message: 'Pedido no encontrado' });
+    }
+
+    res.json(order);
+
+  } catch (error) {
+    console.error('Error en GET /orders/:orderId:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
 
