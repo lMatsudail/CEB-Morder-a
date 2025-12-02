@@ -143,9 +143,9 @@ router.post('/', auth, requirePatronista, async (req, res) => {
     const patronistaId = req.user.userId;
 
     // Validaciones
-    if (!title || !basicPrice || !trainingPrice) {
+    if (!title || !basicPrice) {
       return res.status(400).json({ 
-        message: 'Título, precio básico y precio con capacitación son requeridos' 
+        message: 'Título y precio básico son requeridos' 
       });
     }
 

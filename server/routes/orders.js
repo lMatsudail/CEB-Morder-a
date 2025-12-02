@@ -168,7 +168,7 @@ router.get('/patronista-orders', auth, async (req, res) => {
         o."paymentId",
         o."createdAt",
         o."updatedAt",
-        json_agg(
+        COALESCE(json_agg(
           json_build_object(
             'id', oi.id,
             'productId', oi."productId",
@@ -177,12 +177,16 @@ router.get('/patronista-orders', auth, async (req, res) => {
             'price', oi.price,
             'quantity', oi.quantity
           )
-        ) as items
+        ) FILTER (WHERE oi.id IS NOT NULL), '[]'::json) as items
       FROM orders o
-      INNER JOIN order_items oi ON o.id = oi."orderId"
-      INNER JOIN products p ON oi."productId" = p.id
-      WHERE p."patronistaId" = $1
-      GROUP BY o.id
+      LEFT JOIN order_items oi ON o.id = oi."orderId"
+      LEFT JOIN products p ON oi."productId" = p.id
+      WHERE EXISTS (
+        SELECT 1 FROM order_items oi2 
+        INNER JOIN products p2 ON oi2."productId" = p2.id 
+        WHERE oi2."orderId" = o.id AND p2."patronistaId" = $1
+      )
+      GROUP BY o.id, o."clienteId", o.total, o.status, o."paymentMethod", o."paymentId", o."createdAt", o."updatedAt"
       ORDER BY o."createdAt" DESC
     `;
 
@@ -191,7 +195,8 @@ router.get('/patronista-orders', auth, async (req, res) => {
 
   } catch (error) {
     console.error('Error en GET /orders/patronista-orders:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    console.error('Stack:', error.stack);
+    res.status(500).json({ message: 'Error interno del servidor', error: error.message });
   }
 });
 
