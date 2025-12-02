@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useCart } from '../../context/CartContext';
+import { formatSizes, getSizesText } from '../../utils/formatUtils';
 import './ProductModal.css';
 
 const ProductModal = ({ product, isOpen, onClose }) => {
@@ -30,7 +31,7 @@ const ProductModal = ({ product, isOpen, onClose }) => {
         features: [
           'Archivo digital del molde',
           'Instrucciones básicas',
-          'Tallas incluidas: ' + (product.sizes && Array.isArray(product.sizes) ? product.sizes.join(', ') : 'Estándar')
+          'Tallas incluidas: ' + getSizesText(product.sizes)
         ]
       };
     } else {
@@ -44,7 +45,7 @@ const ProductModal = ({ product, isOpen, onClose }) => {
           'Soporte técnico durante el proyecto',
           'Material didáctico adicional',
           'Seguimiento del progreso',
-          'Tallas incluidas: ' + (product.sizes && Array.isArray(product.sizes) ? product.sizes.join(', ') : 'Estándar')
+          'Tallas incluidas: ' + getSizesText(product.sizes)
         ]
       };
     }
@@ -109,7 +110,7 @@ const ProductModal = ({ product, isOpen, onClose }) => {
               <div className="spec-grid">
                 <div className="spec-item">
                   <strong>Tallas disponibles:</strong>
-                  <span>{product.sizes && Array.isArray(product.sizes) ? product.sizes.join(', ') : 'Estándar'}</span>
+                  <span>{getSizesText(product.sizes)}</span>
                 </div>
                 <div className="spec-item">
                   <strong>Nivel de dificultad:</strong>

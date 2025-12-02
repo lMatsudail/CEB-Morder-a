@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ProductModal from '../../components/ProductModal';
+import { formatSizes } from '../../utils/formatUtils';
 import './Catalog.css';
 
 const Catalog = () => {
@@ -210,11 +211,7 @@ const Catalog = () => {
                 </div>
 
                 <div className="product-sizes-catalog">
-                  <strong>Tallas:</strong> {
-                    product.sizes && Array.isArray(product.sizes) ? 
-                      product.sizes.join(', ') : 
-                      'No especificadas'
-                  }
+                  <strong>Tallas:</strong> {formatSizes(product.sizes)}
                 </div>
 
                 <div className="product-pricing-catalog">

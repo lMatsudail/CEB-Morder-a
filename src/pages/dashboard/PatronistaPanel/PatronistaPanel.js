@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import { productService } from '../../../services/productService';
 import { orderService } from '../../../services/orderService';
+import { formatSizes } from '../../../utils/formatUtils';
 import AddProductForm from '../../../components/forms/AddProductForm';
 import './PatronistaPanel.css';
 
@@ -251,17 +252,7 @@ const PatronistaPanel = () => {
                   </div>
                   
                   <div className="product-sizes">
-                    <strong>Tallas:</strong> {
-                      product.sizes ? 
-                        (typeof product.sizes === 'string' ? 
-                          JSON.parse(product.sizes).join(', ') : 
-                          (Array.isArray(product.sizes) ? 
-                            product.sizes.join(', ') : 
-                            'No especificadas'
-                          )
-                        ) : 
-                        'No especificadas'
-                    }
+                    <strong>Tallas:</strong> {formatSizes(product.sizes)}
                   </div>
                 </div>
 
