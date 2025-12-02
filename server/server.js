@@ -42,14 +42,11 @@ app.use(upload.fields([
 
 // Middleware para combinar req.body y req.fields (en caso de que multer ponga datos en otro lugar)
 app.use((req, res, next) => {
-  if (req.files) {
-    // Si hay archivos, combinar con body
-    req.files.forEach(file => {
-      if (!req.body[file.fieldname]) {
-        req.body[file.fieldname] = [];
-      }
-      if (Array.isArray(req.body[file.fieldname])) {
-        req.body[file.fieldname].push(file);
+  if (req.files && typeof req.files === 'object') {
+    // req.files es un objeto como { images: [...], files: [...] }
+    Object.keys(req.files).forEach(fieldName => {
+      if (Array.isArray(req.files[fieldName])) {
+        req.body[fieldName] = req.files[fieldName];
       }
     });
   }
