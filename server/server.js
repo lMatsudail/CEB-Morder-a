@@ -34,7 +34,27 @@ const upload = multer({
   }
 });
 
-app.use(upload.any());
+// Usar upload.fields para capturar archivos específicos Y campos de texto
+app.use(upload.fields([
+  { name: 'images', maxCount: 10 },
+  { name: 'files', maxCount: 10 }
+]));
+
+// Middleware para combinar req.body y req.fields (en caso de que multer ponga datos en otro lugar)
+app.use((req, res, next) => {
+  if (req.files) {
+    // Si hay archivos, combinar con body
+    req.files.forEach(file => {
+      if (!req.body[file.fieldname]) {
+        req.body[file.fieldname] = [];
+      }
+      if (Array.isArray(req.body[file.fieldname])) {
+        req.body[file.fieldname].push(file);
+      }
+    });
+  }
+  next();
+});
 
 // Configuración específica para manejar headers largos
 app.use((req, res, next) => {
