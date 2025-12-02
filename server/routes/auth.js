@@ -9,10 +9,14 @@ const router = express.Router();
 // Registrar usuario
 router.post('/register', async (req, res) => {
   try {
+    console.log('📝 POST /register iniciado');
+    console.log('req.body:', req.body);
+    
     const { firstName, lastName, email, password, phone, city } = req.body;
 
     // Validaciones
     if (!firstName || !lastName || !email || !password) {
+      console.log('❌ Validación fallida: faltan campos');
       return res.status(400).json({ 
         message: 'Todos los campos obligatorios deben ser completados' 
       });
@@ -88,12 +92,14 @@ router.post('/register', async (req, res) => {
         }
       });
     } catch (error) {
-      console.error('Error en el proceso de registro:', error);
-      res.status(500).json({ message: 'Error creando usuario' });
+      console.error('❌ Error en el proceso de registro:', error.message);
+      console.error('Stack:', error.stack);
+      res.status(500).json({ message: 'Error creando usuario', error: error.message });
     }
 
   } catch (error) {
-    console.error('Error en registro:', error);
+    console.error('❌ Error en registro:', error.message);
+    console.error('Stack:', error.stack);
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 });
