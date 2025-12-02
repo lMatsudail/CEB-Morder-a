@@ -253,7 +253,13 @@ const PatronistaPanel = () => {
                   <div className="product-sizes">
                     <strong>Tallas:</strong> {
                       product.sizes ? 
-                        JSON.parse(product.sizes).join(', ') : 
+                        (typeof product.sizes === 'string' ? 
+                          JSON.parse(product.sizes).join(', ') : 
+                          (Array.isArray(product.sizes) ? 
+                            product.sizes.join(', ') : 
+                            'No especificadas'
+                          )
+                        ) : 
                         'No especificadas'
                     }
                   </div>

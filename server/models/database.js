@@ -231,8 +231,13 @@ const database = {
         { name: 'Vestidos', description: 'Moldes para vestidos de todo tipo' },
         { name: 'Blusa', description: 'Blusas casuales y formales' },
         { name: 'Pantalones', description: 'Pantalones y jeans' },
+        { name: 'Pantalón', description: 'Pantalón singular' },
+        { name: 'Falda', description: 'Falda singular' },
         { name: 'Faldas', description: 'Faldas de diferentes estilos' },
-        { name: 'Chaquetas', description: 'Chaquetas y blazers' }
+        { name: 'Chaquetas', description: 'Chaquetas y blazers' },
+        { name: 'Camisa', description: 'Camisas de diferentes tipos' },
+        { name: 'Short', description: 'Shorts variados' },
+        { name: 'Vestido', description: 'Vestido singular' }
       ];
 
       for (const category of categories) {
