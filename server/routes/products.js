@@ -361,6 +361,14 @@ router.post('/', auth, requirePatronista, async (req, res) => {
     const productResult = await pool.query(selectQuery, [productId]);
     const productComplete = productResult.rows[0];
 
+    if (!productComplete) {
+      console.error('❌ Error: Producto no encontrado después de crear');
+      return res.status(500).json({ 
+        message: 'Error: Producto creado pero no se pudo recuperar de la BD',
+        productId: productId
+      });
+    }
+
     console.log('✅ Producto creado exitosamente con archivos');
 
     res.status(201).json({
@@ -371,7 +379,11 @@ router.post('/', auth, requirePatronista, async (req, res) => {
   } catch (error) {
     console.error('❌ Error en POST /products:', error.message);
     console.error('Stack:', error.stack);
-    res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    res.status(500).json({ 
+      message: 'Error interno del servidor', 
+      error: error.message,
+      detail: error.detail || 'Sin detalles adicionales'
+    });
   }
 });
 
