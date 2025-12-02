@@ -139,12 +139,19 @@ router.get('/:id', async (req, res) => {
 // Crear producto (solo patronistas)
 router.post('/', auth, requirePatronista, async (req, res) => {
   try {
+    console.log('📝 POST /products iniciado');
+    console.log('req.body keys:', Object.keys(req.body));
+    console.log('req.files:', req.files ? req.files.length : 'no files');
+    
     // El campo viene como 'category' del frontend, no 'categoryId'
     const { title, description, category, basicPrice, trainingPrice, difficulty, sizes } = req.body;
     const patronistaId = req.user.userId;
 
+    console.log('Valores parseados:', { title, description, category, basicPrice, trainingPrice, difficulty, sizes });
+
     // Validaciones
     if (!title || !basicPrice) {
+      console.log('❌ Validación fallida: falta title o basicPrice');
       return res.status(400).json({ 
         message: 'Título y precio básico son requeridos' 
       });
@@ -164,17 +171,29 @@ router.post('/', auth, requirePatronista, async (req, res) => {
       RETURNING id
     `;
 
+    console.log('Ejecutando query con:', [
+      patronistaId, 
+      title, 
+      description, 
+      category,
+      basicPrice, 
+      trainingPrice, 
+      difficulty, 
+      sizes
+    ]);
+
     const result = await pool.query(query, [
       patronistaId, 
       title, 
       description, 
-      category,  // Mapear 'category' a 'categoryId' en la DB
- 
+      category,
       basicPrice, 
       trainingPrice, 
       difficulty, 
       JSON.stringify(sizes)
     ]);
+
+    console.log('✅ Producto creado:', result.rows[0].id);
 
     res.status(201).json({
       message: 'Producto creado exitosamente',
@@ -182,8 +201,9 @@ router.post('/', auth, requirePatronista, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error en POST /products:', error);
-    res.status(500).json({ message: 'Error interno del servidor' });
+    console.error('❌ Error en POST /products:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ message: 'Error interno del servidor', error: error.message });
   }
 });
 

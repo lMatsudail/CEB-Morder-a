@@ -158,6 +158,8 @@ router.get('/patronista-orders', auth, async (req, res) => {
     const patronistaId = req.user.userId;
     const pool = database.getPool();
 
+    console.log('📋 GET /patronista-orders - PatronistaId:', patronistaId);
+
     const query = `
       SELECT 
         o.id,
@@ -167,34 +169,46 @@ router.get('/patronista-orders', auth, async (req, res) => {
         o."paymentMethod",
         o."paymentId",
         o."createdAt",
-        o."updatedAt",
-        COALESCE(json_agg(
-          json_build_object(
-            'id', oi.id,
-            'productId', oi."productId",
-            'productTitle', p.title,
-            'optionType', oi."optionType",
-            'price', oi.price,
-            'quantity', oi.quantity
-          )
-        ) FILTER (WHERE oi.id IS NOT NULL), '[]'::json) as items
+        o."updatedAt"
       FROM orders o
-      LEFT JOIN order_items oi ON o.id = oi."orderId"
-      LEFT JOIN products p ON oi."productId" = p.id
       WHERE EXISTS (
-        SELECT 1 FROM order_items oi2 
-        INNER JOIN products p2 ON oi2."productId" = p2.id 
-        WHERE oi2."orderId" = o.id AND p2."patronistaId" = $1
+        SELECT 1 FROM order_items oi 
+        INNER JOIN products p ON oi."productId" = p.id 
+        WHERE oi."orderId" = o.id AND p."patronistaId" = $1
       )
-      GROUP BY o.id, o."clienteId", o.total, o.status, o."paymentMethod", o."paymentId", o."createdAt", o."updatedAt"
       ORDER BY o."createdAt" DESC
     `;
 
     const result = await pool.query(query, [patronistaId]);
-    res.json(result.rows);
+    console.log('✅ Órdenes encontradas:', result.rows.length);
+    
+    // Poblar items para cada orden
+    const ordersWithItems = await Promise.all(
+      result.rows.map(async (order) => {
+        const itemsQuery = `
+          SELECT 
+            oi.id,
+            oi."productId",
+            p.title as "productTitle",
+            oi."optionType",
+            oi.price,
+            oi.quantity
+          FROM order_items oi
+          INNER JOIN products p ON oi."productId" = p.id
+          WHERE oi."orderId" = $1 AND p."patronistaId" = $2
+        `;
+        const itemsResult = await pool.query(itemsQuery, [order.id, patronistaId]);
+        return {
+          ...order,
+          items: itemsResult.rows
+        };
+      })
+    );
+
+    res.json(ordersWithItems);
 
   } catch (error) {
-    console.error('Error en GET /orders/patronista-orders:', error);
+    console.error('❌ Error en GET /orders/patronista-orders:', error.message);
     console.error('Stack:', error.stack);
     res.status(500).json({ message: 'Error interno del servidor', error: error.message });
   }
