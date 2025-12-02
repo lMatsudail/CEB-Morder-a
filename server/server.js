@@ -3,6 +3,7 @@ const cors = require('cors');
 const path = require('path');
 const compression = require('compression');
 const helmet = require('helmet');
+const multer = require('multer');
 const config = require('./config');
 const db = require('./models/database');
 
@@ -24,6 +25,16 @@ app.use(express.urlencoded({
   limit: '50mb',
   parameterLimit: 50000
 }));
+
+// Configurar multer para manejar multipart/form-data
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 100 * 1024 * 1024 // 100MB
+  }
+});
+
+app.use(upload.any());
 
 // Configuración específica para manejar headers largos
 app.use((req, res, next) => {

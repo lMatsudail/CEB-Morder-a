@@ -139,7 +139,8 @@ router.get('/:id', async (req, res) => {
 // Crear producto (solo patronistas)
 router.post('/', auth, requirePatronista, async (req, res) => {
   try {
-    const { title, description, categoryId, basicPrice, trainingPrice, difficulty, sizes } = req.body;
+    // El campo viene como 'category' del frontend, no 'categoryId'
+    const { title, description, category, basicPrice, trainingPrice, difficulty, sizes } = req.body;
     const patronistaId = req.user.userId;
 
     // Validaciones
@@ -149,7 +150,7 @@ router.post('/', auth, requirePatronista, async (req, res) => {
       });
     }
 
-    if (basicPrice <= 0 || trainingPrice <= 0) {
+    if (basicPrice <= 0 || (trainingPrice && trainingPrice <= 0)) {
       return res.status(400).json({ 
         message: 'Los precios deben ser mayores a 0' 
       });
@@ -167,7 +168,8 @@ router.post('/', auth, requirePatronista, async (req, res) => {
       patronistaId, 
       title, 
       description, 
-      categoryId, 
+      category,  // Mapear 'category' a 'categoryId' en la DB
+ 
       basicPrice, 
       trainingPrice, 
       difficulty, 
