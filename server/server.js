@@ -47,6 +47,7 @@ const allowedOrigins = [
   'http://localhost:5000',
   'http://localhost:5173',
   'https://ceb-molderia-web.onrender.com',
+  'https://ceb-morder-a.onrender.com',
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
