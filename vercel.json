@@ -1,0 +1,11 @@
+{
+  "buildCommand": "npm run build",
+  "framework": "create-react-app",
+  "redirects": [
+    {
+      "source": "/:path((?!.*\\\\.).*)*",
+      "destination": "/index.html",
+      "statusCode": 200
+    }
+  ]
+}
