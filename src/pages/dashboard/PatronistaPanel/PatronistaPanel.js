@@ -23,6 +23,8 @@ const PatronistaPanel = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     // Cargar datos del patronista
@@ -298,7 +300,10 @@ const PatronistaPanel = () => {
                 <button 
                   className="btn-view" 
                   title="Ver detalles"
-                  onClick={() => window.open(`/producto/${product.id}`, '_blank')}
+                  onClick={() => {
+                    setSelectedProduct(product);
+                    setShowPreviewModal(true);
+                  }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -571,6 +576,93 @@ const PatronistaPanel = () => {
               >
                 {loading ? 'Eliminando...' : 'Eliminar'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Vista Previa del Producto */}
+      {showPreviewModal && selectedProduct && (
+        <div className="modal-overlay" onClick={() => setShowPreviewModal(false)}>
+          <div className="modal-preview-content" onClick={(e) => e.stopPropagation()}>
+            <button 
+              className="modal-close-btn"
+              onClick={() => setShowPreviewModal(false)}
+              title="Cerrar"
+            >
+              ✕
+            </button>
+
+            <div className="preview-grid">
+              {/* Imagen */}
+              <div className="preview-image-section">
+                <img 
+                  src={getFirstImageUrl(selectedProduct)} 
+                  alt={selectedProduct.title}
+                  className="preview-image"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+              </div>
+
+              {/* Información */}
+              <div className="preview-info-section">
+                <h2 className="preview-title">{selectedProduct.title}</h2>
+                
+                <div className="preview-meta">
+                  <span className={`difficulty-badge ${selectedProduct.difficulty?.toLowerCase()}`}>
+                    {selectedProduct.difficulty}
+                  </span>
+                  <span className={`status-badge ${selectedProduct.active ? 'active' : 'inactive'}`}>
+                    {selectedProduct.active ? 'Activo' : 'Inactivo'}
+                  </span>
+                </div>
+
+                <p className="preview-description">{selectedProduct.description}</p>
+
+                <div className="preview-specs">
+                  <div className="spec-row">
+                    <span className="spec-label">Tallas:</span>
+                    <span className="spec-value">{formatSizes(selectedProduct.sizes)}</span>
+                  </div>
+                  <div className="spec-row">
+                    <span className="spec-label">Solo molde:</span>
+                    <span className="spec-value">${selectedProduct.basicPrice?.toLocaleString()} COP</span>
+                  </div>
+                  <div className="spec-row">
+                    <span className="spec-label">Con capacitación:</span>
+                    <span className="spec-value">${selectedProduct.trainingPrice?.toLocaleString()} COP</span>
+                  </div>
+                </div>
+
+                <div className="preview-actions">
+                  <button 
+                    className="btn-edit"
+                    onClick={() => {
+                      handleEditProduct(selectedProduct);
+                      setShowPreviewModal(false);
+                    }}
+                  >
+                    ✏️ Editar
+                  </button>
+                  <button 
+                    className="btn-delete"
+                    onClick={() => {
+                      handleDeleteClick(selectedProduct);
+                      setShowPreviewModal(false);
+                    }}
+                  >
+                    🗑️ Eliminar
+                  </button>
+                  <button 
+                    className="btn-close"
+                    onClick={() => setShowPreviewModal(false)}
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
