@@ -235,7 +235,8 @@ async function startServer() {
 
     // ========== SERVIR FRONTEND REACT ==========
     // Servir los archivos estáticos del build de React
-    const buildPath = path.join(__dirname, '..', '..', 'build');
+    // Nota: Usando 'build-temp' porque .gitignore ignora 'build/'
+    const buildPath = path.join(__dirname, '..', '..', 'build-temp');
     console.log(`📂 Sirviendo archivos estáticos desde: ${buildPath}`);
     console.log(`📂 ¿Existe build? ${require('fs').existsSync(buildPath)}`);
     app.use(express.static(buildPath));
