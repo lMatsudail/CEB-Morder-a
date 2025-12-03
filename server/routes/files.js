@@ -45,6 +45,11 @@ router.get('/image/:productId/:fileId', async (req, res) => {
       }
     }
 
+    // Si existe externalUrl, redirigir a esa URL
+    if (file.externalUrl) {
+      return res.redirect(302, file.externalUrl);
+    }
+
     return res.status(404).json({ message: 'Archivo no tiene datos' });
 
   } catch (error) {
@@ -108,6 +113,11 @@ router.get('/pattern/:productId/:fileId', async (req, res) => {
       } catch (error) {
         return res.status(404).json({ message: 'Patrón no encontrado en el servidor' });
       }
+    }
+
+    // Para patrones, si existe externalUrl (raro), redirigir también
+    if (file.externalUrl) {
+      return res.redirect(302, file.externalUrl);
     }
 
     return res.status(404).json({ message: 'Patrón no tiene datos' });

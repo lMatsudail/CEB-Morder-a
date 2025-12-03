@@ -215,6 +215,24 @@ const database = {
       } else {
         console.log('✔️  Columna filePath ya permite NULL o no existe restricción');
       }
+
+      // Agregar columna externalUrl para imágenes alojadas externamente (Cloudinary, etc.)
+      const externalUrlCol = await pool.query(
+        `SELECT 1 FROM information_schema.columns 
+         WHERE table_name = 'product_files' AND column_name = 'externalUrl'`
+      );
+      if (externalUrlCol.rowCount === 0) {
+        console.log('🛠️  Migración: agregando columna externalUrl (VARCHAR) a product_files');
+        await pool.query('ALTER TABLE product_files ADD COLUMN "externalUrl" VARCHAR(1000)');
+        // Índice opcional para búsquedas por URL
+        try {
+          await pool.query('CREATE INDEX IF NOT EXISTS idx_product_files_external_url ON product_files("externalUrl")');
+        } catch (e) {
+          // no bloquear si falla el índice
+        }
+      } else {
+        console.log('✔️  Columna externalUrl ya existe en product_files');
+      }
     } catch (mErr) {
       console.error('⚠️  Error en migración ligera de esquema:', mErr.message);
       // No impedir el arranque por un fallo menor de migración

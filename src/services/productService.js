@@ -64,7 +64,7 @@ export const productService = {
       
       // Agregar campos de texto
       Object.keys(productData).forEach(key => {
-        if (key !== 'images' && key !== 'files') {
+        if (key !== 'images' && key !== 'files' && key !== 'imageUrls') {
           formData.append(key, productData[key]);
         }
       });
@@ -81,6 +81,11 @@ export const productService = {
         productData.files.forEach(file => {
           formData.append('files', file);
         });
+      }
+
+      // Agregar URLs de imágenes (si se envían)
+      if (productData.imageUrls && Array.isArray(productData.imageUrls) && productData.imageUrls.length > 0) {
+        formData.append('imageUrls', JSON.stringify(productData.imageUrls));
       }
 
       const response = await apiClient.post('/products', formData, {
@@ -100,7 +105,7 @@ export const productService = {
       const formData = new FormData();
       
       Object.keys(productData).forEach(key => {
-        if (key !== 'images' && key !== 'files') {
+        if (key !== 'images' && key !== 'files' && key !== 'imageUrls') {
           formData.append(key, productData[key]);
         }
       });
@@ -115,6 +120,10 @@ export const productService = {
         productData.files.forEach(file => {
           formData.append('files', file);
         });
+      }
+
+      if (productData.imageUrls && Array.isArray(productData.imageUrls) && productData.imageUrls.length > 0) {
+        formData.append('imageUrls', JSON.stringify(productData.imageUrls));
       }
 
       const response = await apiClient.put(`/products/${id}`, formData, {

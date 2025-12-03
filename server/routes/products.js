@@ -320,6 +320,41 @@ router.post('/', auth, requirePatronista, async (req, res) => {
       }
     }
 
+    // Procesar URLs externas de imágenes (por ejemplo, Cloudinary)
+    let imageUrls = [];
+    if (req.body && req.body.imageUrls) {
+      try {
+        // Aceptar tanto JSON string como array plano enviado por form-data
+        if (typeof req.body.imageUrls === 'string') {
+          imageUrls = JSON.parse(req.body.imageUrls);
+        } else if (Array.isArray(req.body.imageUrls)) {
+          imageUrls = req.body.imageUrls;
+        }
+      } catch (e) {
+        console.warn('⚠️  imageUrls no es JSON válido, ignorando:', req.body.imageUrls);
+      }
+    }
+
+    if (Array.isArray(imageUrls) && imageUrls.length > 0) {
+      const insertUrlQuery = `
+        INSERT INTO product_files ("productId", "fileName", "originalName", "fileType", "fileSize", "externalUrl")
+        VALUES ($1, $2, $3, 'image', NULL, $4)
+        RETURNING id
+      `;
+      for (const url of imageUrls) {
+        const urlStr = String(url).trim();
+        if (!urlStr) continue;
+        const fileName = sanitizeName(urlStr.split('/').pop() || `image_${now}`);
+        const r = await pool.query(insertUrlQuery, [
+          productId,
+          fileName,
+          fileName,
+          urlStr
+        ]);
+        console.log(`✅ Imagen URL registrada: ${urlStr} -> id ${r.rows[0]?.id}`);
+      }
+    }
+
     // Obtener el producto con todos sus archivos
     const selectQuery = `
       SELECT 

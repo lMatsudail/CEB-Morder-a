@@ -38,6 +38,7 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
   });
 
   const [images, setImages] = useState([]);
+  const [imageUrlsText, setImageUrlsText] = useState('');
   const [patternFiles, setPatternFiles] = useState([]);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -184,8 +185,8 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
     if (formData.sizes.length === 0) newErrors.sizes = 'Selecciona al menos una talla';
     if (!formData.basicPrice || formData.basicPrice <= 0) newErrors.basicPrice = 'Precio básico válido es requerido';
     
-    // Validar que tenga al menos una imagen
-    if (!isEditing && images.length === 0) {
+    // Validar que tenga al menos una imagen (archivo o URL)
+    if (!isEditing && images.length === 0 && (imageUrlsText || '').trim().length === 0) {
       newErrors.images = 'Al menos una imagen es requerida';
     }
 
@@ -204,6 +205,12 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Construir lista de URLs válidas (si el usuario pegó URLs)
+    const parsedImageUrls = (imageUrlsText || '')
+      .split('\n')
+      .map(u => u.trim())
+      .filter(u => u && /^(https?:)?\/\//i.test(u));
     
     console.log('🔍 Iniciando submit del formulario...');
     console.log('📋 Datos del formulario:', formData);
@@ -233,7 +240,8 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
         active: formData.active,
         // Adjuntar archivos para envío multipart/form-data
         images: images.map(img => img.file),
-        files: patternFiles.map(p => p.file)
+        files: patternFiles.map(p => p.file),
+        imageUrls: parsedImageUrls
       };
 
       console.log('📦 Datos preparados para envío:', productData);
@@ -280,6 +288,7 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
         });
         setImages([]);
         setPatternFiles([]);
+        setImageUrlsText('');
       }
       
     } catch (error) {
@@ -482,6 +491,20 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
             </div>
           )}
           {errors.images && <span className="error-text">{errors.images}</span>}
+
+          {/* URLs de imágenes (opcional) */}
+          <div className="form-group" style={{ marginTop: '12px' }}>
+            <label htmlFor="imageUrlsText">o pega URLs de imágenes (una por línea)</label>
+            <textarea
+              id="imageUrlsText"
+              name="imageUrlsText"
+              value={imageUrlsText}
+              onChange={(e) => setImageUrlsText(e.target.value)}
+              placeholder="https://res.cloudinary.com/.../imagen1.jpg\nhttps://res.cloudinary.com/.../imagen2.webp"
+              rows="3"
+            />
+            <small className="upload-hint">Se permiten URLs http(s). Recomendado: Cloudinary.</small>
+          </div>
         </div>
 
         {/* Archivos de Molde */}
