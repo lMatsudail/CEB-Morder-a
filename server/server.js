@@ -93,6 +93,9 @@ app.use(compression());
 // Servir archivos estáticos de uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Servir archivos estáticos del frontend React (DESPUÉS de las rutas /api)
+// Esto se hará al final, antes de la ruta catch-all
+
 // Middleware de logging para debug - MUY VISIBLE
 app.use((req, res, next) => {
   if (req.path.includes('/api/products')) {
@@ -229,6 +232,21 @@ async function startServer() {
       console.error('⚠️  Error sincronizando categorías en startup:', syncError.message);
       // No fallar el servidor por esto
     }
+
+    // ========== SERVIR FRONTEND REACT ==========
+    // Servir los archivos estáticos del build de React
+    const buildPath = path.join(__dirname, '..', 'build');
+    app.use(express.static(buildPath));
+    
+    // Para rutas que no son /api/*, servir index.html (React Router maneja el resto)
+    app.get('*', (req, res) => {
+      // Si es una ruta API que no existe, devolver 404
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ message: 'Ruta no encontrada' });
+      }
+      // Para cualquier otra ruta, servir index.html (React Router lo maneja)
+      res.sendFile(path.join(buildPath, 'index.html'));
+    });
     
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Servidor ejecutándose en puerto ${PORT}`);
