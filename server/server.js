@@ -93,6 +93,27 @@ app.use(compression());
 // Servir archivos estáticos de uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// ========== SERVIR FRONTEND REACT (ANTES DE LAS RUTAS /API) ==========
+const buildPath = path.join(__dirname, '..', '..', 'build');
+
+// Verificar si build existe, si no intentar compilar
+const fs = require('fs');
+if (!fs.existsSync(buildPath)) {
+  console.log('📦 Carpeta build no encontrada en startup, será compilada cuando inicie el servidor');
+}
+
+// Servir archivos estáticos del build de React
+app.use(express.static(buildPath));
+
+// Ruta catch-all para React Router (DEBE estar ANTES del error 404 de /api)
+app.get(/^\/(?!api\/)/, (req, res) => {
+  const indexPath = path.join(buildPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({ message: 'React build no disponible' });
+  }
+});
 // Servir archivos estáticos del frontend React (DESPUÉS de las rutas /api)
 // Esto se hará al final, antes de la ruta catch-all
 
@@ -188,6 +209,21 @@ app.use('*', (req, res) => {
 // Inicializar base de datos y servidor
 async function startServer() {
   try {
+    // ========== COMPILAR REACT SI NO EXISTE ==========
+    const buildPath = path.join(__dirname, '..', '..', 'build');
+    if (!fs.existsSync(buildPath)) {
+      console.log('📦 Compilando React build...');
+      try {
+        require('child_process').execSync('npm run build', { stdio: 'inherit', cwd: path.join(__dirname, '..', '..') });
+        console.log('✅ React compilado exitosamente');
+      } catch (err) {
+        console.error('❌ Error compilando React:', err.message);
+      }
+    } else {
+      console.log('✅ React build ya existe');
+    }
+
+    // ========== CONECTAR A BASE DE DATOS ==========
     await db.initialize();
     console.log('Base de datos inicializada correctamente');
     
@@ -233,37 +269,6 @@ async function startServer() {
       // No fallar el servidor por esto
     }
 
-    // ========== SERVIR FRONTEND REACT ==========
-    // Servir los archivos estáticos del build de React
-    // React se compila durante npm install via postinstall.js
-    const buildPath = path.join(__dirname, '..', '..', 'build');
-    console.log(`📂 Sirviendo archivos estáticos desde: ${buildPath}`);
-    console.log(`📂 ¿Existe build? ${require('fs').existsSync(buildPath)}`);
-    
-    // Si build no existe, intenta compilar localmente
-    if (!require('fs').existsSync(buildPath)) {
-      console.log('⚠️  Carpeta build no encontrada, intentando compilar...');
-      try {
-        require('child_process').execSync('npm run build', { stdio: 'inherit' });
-        console.log('✅ React compilado exitosamente');
-      } catch (err) {
-        console.error('❌ Error compilando React, continuando sin build');
-      }
-    }
-    
-    app.use(express.static(buildPath));
-    
-    // Para rutas que no son /api/*, servir index.html (React Router maneja el resto)
-    app.get('*', (req, res) => {
-      // Si es una ruta API que no existe, devolver 404
-      if (req.path.startsWith('/api/')) {
-        return res.status(404).json({ message: 'Ruta no encontrada' });
-      }
-      // Para cualquier otra ruta, servir index.html (React Router lo maneja)
-      console.log(`🔄 Sirviendo index.html para ruta: ${req.path}`);
-      res.sendFile(path.join(buildPath, 'index.html'));
-    });
-    
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Servidor ejecutándose en puerto ${PORT}`);
       console.log(`Salud del servidor: http://localhost:${PORT}/api/health`);
