@@ -450,7 +450,7 @@ router.put('/:id', auth, requirePatronista, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.userId;
-    const { title, description, category, difficulty, sizes, basicPrice, trainingPrice, active } = req.body;
+    const { title, description, category, difficulty, sizes, basicPrice, trainingPrice, active, imageUrls } = req.body;
 
     if (isNaN(id)) {
       return res.status(400).json({ message: 'ID de producto inválido' });
@@ -468,6 +468,18 @@ router.put('/:id', auth, requirePatronista, async (req, res) => {
 
     if (checkResult.rows[0].patronistaId !== userId) {
       return res.status(403).json({ message: 'No tienes permisos para actualizar este producto' });
+    }
+
+    // Buscar el ID de la categoría por nombre (igual que en POST)
+    let categoryId = null;
+    if (category) {
+      const categoryQuery = 'SELECT id FROM categories WHERE LOWER(name) = LOWER($1)';
+      const categoryResult = await pool.query(categoryQuery, [category]);
+      if (categoryResult.rows.length > 0) {
+        categoryId = categoryResult.rows[0].id;
+      } else {
+        console.log('⚠️  Categoría no encontrada:', category);
+      }
     }
 
     // Actualizar producto
@@ -491,13 +503,92 @@ router.put('/:id', auth, requirePatronista, async (req, res) => {
       id,
       title,
       description,
-      category,
+      categoryId,
       difficulty,
       sizes ? JSON.stringify(sizes) : null,
       basicPrice,
       trainingPrice,
       active
     ]);
+
+    const productId = result.rows[0].id;
+
+    // Procesar archivos nuevos si los hay
+    const filesFromMulter = req.files || {};
+    
+    // Procesar imágenes subidas
+    if (filesFromMulter.images && Array.isArray(filesFromMulter.images)) {
+      for (const file of filesFromMulter.images) {
+        const insertQuery = `
+          INSERT INTO product_files (
+            "productId", "fileName", "originalName", "fileType", "fileSize", "fileData"
+          ) VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING id
+        `;
+        await pool.query(insertQuery, [
+          productId,
+          `image_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          file.originalname,
+          file.mimetype,
+          file.size,
+          file.buffer
+        ]);
+        console.log('✅ Imagen actualizada en BD');
+      }
+    }
+
+    // Procesar patrones subidos
+    if (filesFromMulter.files && Array.isArray(filesFromMulter.files)) {
+      for (const file of filesFromMulter.files) {
+        const insertQuery = `
+          INSERT INTO product_files (
+            "productId", "fileName", "originalName", "fileType", "fileSize", "fileData"
+          ) VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING id
+        `;
+        await pool.query(insertQuery, [
+          productId,
+          `pattern_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          file.originalname,
+          file.mimetype,
+          file.size,
+          file.buffer
+        ]);
+        console.log('✅ Patrón actualizado en BD');
+      }
+    }
+
+    // Procesar URLs de imágenes externas si las hay
+    if (imageUrls) {
+      let parsedUrls = [];
+      try {
+        parsedUrls = typeof imageUrls === 'string' ? JSON.parse(imageUrls) : imageUrls;
+      } catch (e) {
+        parsedUrls = [];
+      }
+
+      if (Array.isArray(parsedUrls) && parsedUrls.length > 0) {
+        for (const url of parsedUrls) {
+          if (url && /^(https?:)?\/\//.test(url)) {
+            const insertQuery = `
+              INSERT INTO product_files (
+                "productId", "fileName", "originalName", "fileType", "externalUrl", "fileSize"
+              ) VALUES ($1, $2, $3, $4, $5, $6)
+              RETURNING id
+            `;
+            await pool.query(insertQuery, [
+              productId,
+              `external_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              url,
+              'image/external',
+              url,
+              0
+            ]);
+            console.log('✅ Imagen URL registrada en actualización');
+          }
+        }
+      }
+    }
 
     res.json({
       message: 'Producto actualizado exitosamente',
