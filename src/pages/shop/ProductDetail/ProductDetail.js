@@ -128,7 +128,7 @@ const ProductDetail = () => {
           </div>
 
           {/* Miniaturas */}
-          {product.images && product.images.length > 1 && (
+          {product.images && Array.isArray(product.images) && product.images.length > 1 && (
             <div className="product-thumbnails">
               {product.images.map((image, index) => {
                 const imageUrl = image.url || `${process.env.REACT_APP_API_URL}/files/image/${product.id}/${image.id}`;
@@ -143,7 +143,8 @@ const ProductDetail = () => {
                       alt={`Imagen ${index + 1}`}
                       onError={(e) => {
                         e.target.style.display = 'none';
-                        e.target.parentElement.querySelector('.thumbnail-placeholder').style.display = 'flex';
+                        const placeholder = e.target.parentElement?.querySelector('.thumbnail-placeholder');
+                        if (placeholder) placeholder.style.display = 'flex';
                       }}
                     />
                     <div className="thumbnail-placeholder">📷</div>
