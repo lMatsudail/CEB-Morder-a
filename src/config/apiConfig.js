@@ -7,14 +7,17 @@
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 // En desarrollo, usar localhost:3000
-// En producción (Render), usar ruta relativa (se sirve desde el mismo dominio)
+// En producción (Render con dominio personalizado), usar ruta relativa
 export const API_BASE = isDevelopment 
   ? (process.env.REACT_APP_API_URL || 'http://localhost:3000')
   : '';
 
 // API_URL siempre incluye /api para rutas relativas
+// En producción: /api (se sirve desde cebmolderia.com/api)
+// En desarrollo: http://localhost:3000/api
 export const API_URL = `${API_BASE}/api`;
 
 // También exportar por defecto para compatibilidad
 export default API_URL;
+
 
