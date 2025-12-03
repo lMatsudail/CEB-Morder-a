@@ -16,7 +16,6 @@ database.sqlite
 *.db
 
 # Archivos de compilación
-# build/    # Comentado porque necesitamos que React build se despliegue a Render
 dist/
 
 # Archivos de uploads
