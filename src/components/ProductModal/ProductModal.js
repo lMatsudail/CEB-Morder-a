@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCart } from '../../context/CartContext';
-import { formatSizes, getSizesText } from '../../utils/formatUtils';
+import { getSizesText } from '../../utils/formatUtils';
 import './ProductModal.css';
 
 const ProductModal = ({ product, isOpen, onClose }) => {
