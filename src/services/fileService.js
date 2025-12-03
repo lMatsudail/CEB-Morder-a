@@ -1,10 +1,8 @@
 import axios from 'axios';
 import { API_URL } from '../config/apiConfig';
 
-const apiUrl = API_URL;
-
 const apiClient = axios.create({
-  baseURL: `${apiUrl}/api`,
+  baseURL: API_URL,
 });
 
 // Interceptor para agregar token

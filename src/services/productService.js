@@ -39,7 +39,7 @@ export const productService = {
   getAllProducts: async (filters = {}) => {
     try {
       const queryParams = new URLSearchParams(filters).toString();
-      const url = queryParams ? `/api/products?${queryParams}` : '/api/products';
+      const url = queryParams ? `/products?${queryParams}` : '/products';
       const response = await apiClient.get(url);
       return response.data;
     } catch (error) {
@@ -50,7 +50,7 @@ export const productService = {
   // Obtener producto por ID
   getProductById: async (id) => {
     try {
-      const response = await apiClient.get(`/api/products/${id}`);
+      const response = await apiClient.get(`/products/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error obteniendo producto');
@@ -83,7 +83,7 @@ export const productService = {
         });
       }
 
-      const response = await apiClient.post('/api/products', formData, {
+      const response = await apiClient.post('/products', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -117,7 +117,7 @@ export const productService = {
         });
       }
 
-      const response = await apiClient.put(`/api/products/${id}`, formData, {
+      const response = await apiClient.put(`/products/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -131,7 +131,7 @@ export const productService = {
   // Eliminar producto
   deleteProduct: async (id) => {
     try {
-      const response = await apiClient.delete(`/api/products/${id}`);
+      const response = await apiClient.delete(`/products/${id}`);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error eliminando producto');
@@ -141,7 +141,7 @@ export const productService = {
   // Obtener productos del patronista autenticado
   getMyProducts: async () => {
     try {
-      const response = await apiClient.get('/api/products/my-products');
+      const response = await apiClient.get('/products/my-products');
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error obteniendo mis productos');
@@ -151,7 +151,7 @@ export const productService = {
   // Obtener categorías
   getCategories: async () => {
     try {
-      const response = await apiClient.get('/api/categories');
+      const response = await apiClient.get('/categories');
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error obteniendo categorías');

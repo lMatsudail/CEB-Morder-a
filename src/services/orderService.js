@@ -36,7 +36,7 @@ export const orderService = {
   // Crear nuevo pedido
   createOrder: async (items) => {
     try {
-      const response = await apiClient.post('/api/orders', { items });
+      const response = await apiClient.post('/orders', { items });
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error creando pedido');
@@ -46,7 +46,7 @@ export const orderService = {
   // Obtener pedidos del cliente autenticado
   getMyOrders: async () => {
     try {
-      const response = await apiClient.get('/api/orders/my-orders');
+      const response = await apiClient.get('/orders/my-orders');
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error obteniendo pedidos');
@@ -56,7 +56,7 @@ export const orderService = {
   // Obtener pedidos del patronista (pedidos de sus productos)
   getPatronistaOrders: async () => {
     try {
-      const response = await apiClient.get('/api/orders/patronista-orders');
+      const response = await apiClient.get('/orders/patronista-orders');
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error obteniendo pedidos del patronista');
@@ -66,7 +66,7 @@ export const orderService = {
   // Actualizar estado del pedido
   updateOrderStatus: async (orderId, status) => {
     try {
-      const response = await apiClient.patch(`/api/orders/${orderId}/status`, { status });
+      const response = await apiClient.patch(`/orders/${orderId}/status`, { status });
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error actualizando estado del pedido');
@@ -76,7 +76,7 @@ export const orderService = {
   // Obtener detalles de un pedido específico
   getOrderById: async (orderId) => {
     try {
-      const response = await apiClient.get(`/api/orders/${orderId}`);
+      const response = await apiClient.get(`/orders/${orderId}`);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error obteniendo detalles del pedido');
