@@ -37,7 +37,7 @@ export const authService = {
   // Registro de usuario
   register: async (userData) => {
     try {
-      const response = await apiClient.post('/api/auth/register', userData);
+      const response = await apiClient.post('/auth/register', userData);
       return response.data;
     } catch (error) {
       if (error.response) {
@@ -56,7 +56,7 @@ export const authService = {
   // Inicio de sesión
   login: async (email, password) => {
     try {
-      const response = await apiClient.post('/api/auth/login', {
+      const response = await apiClient.post('/auth/login', {
         email,
         password
       });
@@ -78,7 +78,7 @@ export const authService = {
   // Obtener usuario actual
   getCurrentUser: async () => {
     try {
-      const response = await apiClient.get('/api/auth/me');
+      const response = await apiClient.get('/auth/me');
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error obteniendo usuario');
@@ -88,7 +88,7 @@ export const authService = {
   // Actualizar perfil
   updateProfile: async (userData) => {
     try {
-      const response = await apiClient.put('/api/auth/profile', userData);
+      const response = await apiClient.put('/auth/profile', userData);
       return response.data;
     } catch (error) {
       throw new Error(error.response?.data?.message || 'Error actualizando perfil');
@@ -98,7 +98,7 @@ export const authService = {
   // Cambiar contraseña
   changePassword: async (currentPassword, newPassword) => {
     try {
-      const response = await apiClient.put('/api/auth/password', {
+      const response = await apiClient.put('/auth/password', {
         currentPassword,
         newPassword
       });

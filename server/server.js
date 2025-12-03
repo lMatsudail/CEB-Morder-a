@@ -19,10 +19,10 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://cebmolderia.com"],
       connectSrc: ["'self'", "https://api.wompi.co"],
-      fontSrc: ["'self'", "data:"],
+      fontSrc: ["'self'", "data:", "https://fonts.gstatic.com"],
       frameSrc: ["'self'"]
     }
   }
