@@ -214,7 +214,8 @@ async function startServer() {
     if (!fs.existsSync(buildPath)) {
       console.log('📦 Compilando React build...');
       try {
-        require('child_process').execSync('npm run build', { stdio: 'inherit', cwd: path.join(__dirname, '..', '..') });
+        // Ejecutar npm run build desde la raíz del proyecto
+        require('child_process').execSync('npm run build', { stdio: 'inherit' });
         console.log('✅ React compilado exitosamente');
       } catch (err) {
         console.error('❌ Error compilando React:', err.message);
