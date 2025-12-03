@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const multer = require('multer');
 const config = require('./config');
 const db = require('./models/database');
+const setupReactServing = require('./serve-react');
 
 const app = express();
 const PORT = config.PORT;
@@ -94,26 +95,8 @@ app.use(compression());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ========== SERVIR FRONTEND REACT (ANTES DE LAS RUTAS /API) ==========
-const buildPath = path.join(__dirname, '..', '..', 'build');
-
-// Verificar si build existe, si no intentar compilar
-const fs = require('fs');
-if (!fs.existsSync(buildPath)) {
-  console.log('📦 Carpeta build no encontrada en startup, será compilada cuando inicie el servidor');
-}
-
-// Servir archivos estáticos del build de React
-app.use(express.static(buildPath));
-
-// Ruta catch-all para React Router (DEBE estar ANTES del error 404 de /api)
-app.get(/^\/(?!api\/)/, (req, res) => {
-  const indexPath = path.join(buildPath, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    res.sendFile(indexPath);
-  } else {
-    res.status(404).json({ message: 'React build no disponible' });
-  }
-});
+// Usar middleware dedicado para servir React
+setupReactServing(app);
 // Servir archivos estáticos del frontend React (DESPUÉS de las rutas /api)
 // Esto se hará al final, antes de la ruta catch-all
 
