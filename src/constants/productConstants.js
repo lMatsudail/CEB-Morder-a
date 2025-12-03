@@ -50,9 +50,9 @@ export const SIZES = [
 ];
 
 export const DIFFICULTY_LEVELS = [
-  { value: 'beginner', label: 'Principiante' },
-  { value: 'intermediate', label: 'Intermedio' },
-  { value: 'advanced', label: 'Avanzado' }
+  { value: 'Principiante', label: 'Principiante' },
+  { value: 'Intermedio', label: 'Intermedio' },
+  { value: 'Avanzado', label: 'Avanzado' }
 ];
 
 export const ALLOWED_IMAGE_TYPES = [
