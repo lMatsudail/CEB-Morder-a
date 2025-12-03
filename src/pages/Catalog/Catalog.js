@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ProductModal from '../../components/ProductModal';
 import { formatSizes } from '../../utils/formatUtils';
+import { getFirstImageUrl } from '../../utils/imageUtils';
 import './Catalog.css';
 
 const Catalog = () => {
@@ -188,7 +189,18 @@ const Catalog = () => {
           {sortedProducts.map(product => (
             <div key={product.id} className="catalog-product-card" onClick={() => handleProductClick(product)}>
               <div className="product-image-catalog">
-                <div className="product-placeholder-catalog">
+                {getFirstImageUrl(product) ? (
+                  <img 
+                    src={getFirstImageUrl(product)} 
+                    alt={product.title}
+                    className="product-image-img"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.parentElement.querySelector('.product-placeholder-catalog').style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div className="product-placeholder-catalog" style={{ display: getFirstImageUrl(product) ? 'none' : 'flex' }}>
                   📷
                 </div>
                 <div className="product-difficulty-badge">

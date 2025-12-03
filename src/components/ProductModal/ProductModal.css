@@ -109,6 +109,13 @@
   color: #ffffff;
 }
 
+.product-image-img-large {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .difficulty-badge-large {
   position: absolute;
   top: 15px;

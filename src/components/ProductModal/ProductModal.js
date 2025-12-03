@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useCart } from '../../context/CartContext';
 import { getSizesText } from '../../utils/formatUtils';
+import { getFirstImageUrl } from '../../utils/imageUtils';
 import './ProductModal.css';
 
 const ProductModal = ({ product, isOpen, onClose }) => {
@@ -88,7 +89,18 @@ const ProductModal = ({ product, isOpen, onClose }) => {
         <div className="modal-body">
           <div className="product-image-section">
             <div className="product-image-large">
-              <div className="product-placeholder-large">
+              {getFirstImageUrl(product) ? (
+                <img 
+                  src={getFirstImageUrl(product)} 
+                  alt={product.title}
+                  className="product-image-img-large"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.parentElement.querySelector('.product-placeholder-large').style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div className="product-placeholder-large" style={{ display: getFirstImageUrl(product) ? 'none' : 'flex' }}>
                 📷
               </div>
               <div className="difficulty-badge-large">

@@ -3,6 +3,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { productService } from '../../../services/productService';
 import { orderService } from '../../../services/orderService';
 import { formatSizes } from '../../../utils/formatUtils';
+import { getFirstImageUrl } from '../../../utils/imageUtils';
 import AddProductForm from '../../../components/forms/AddProductForm';
 import './PatronistaPanel.css';
 
@@ -227,7 +228,18 @@ const PatronistaPanel = () => {
           {products.map(product => (
             <div key={product.id} className="product-card">
               <div className="product-image">
-                <div className="product-placeholder">
+                {getFirstImageUrl(product) ? (
+                  <img 
+                    src={getFirstImageUrl(product)} 
+                    alt={product.title}
+                    className="product-image-img"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.parentElement.querySelector('.product-placeholder').style.display = 'flex';
+                    }}
+                  />
+                ) : null}
+                <div className="product-placeholder" style={{ display: getFirstImageUrl(product) ? 'none' : 'flex' }}>
                   📷
                 </div>
                 <div className="product-status">
