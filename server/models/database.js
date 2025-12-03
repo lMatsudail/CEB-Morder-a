@@ -37,6 +37,9 @@ const database = {
 
       // Crear tablas
       await database.createTables();
+
+      // Migraciones ligeras para compatibilidad (sin framework de migraciones)
+      await database.migrateSchema();
       initialized = true;
       return;
     } catch (error) {
@@ -183,6 +186,38 @@ const database = {
       } else {
         console.error('⚠️  ADVERTENCIA: El servidor arrancará pese al error en tablas/admin');
       }
+    }
+  },
+
+  // Migraciones ligeras para product_files: asegurar columna fileData y permitir filePath NULL
+  migrateSchema: async () => {
+    try {
+      // Verificar si existe columna "fileData" en product_files
+      const fileDataCol = await pool.query(
+        `SELECT 1 FROM information_schema.columns 
+         WHERE table_name = 'product_files' AND column_name = 'fileData'`
+      );
+      if (fileDataCol.rowCount === 0) {
+        console.log('🛠️  Migración: agregando columna fileData (BYTEA) a product_files');
+        await pool.query('ALTER TABLE product_files ADD COLUMN "fileData" BYTEA');
+      } else {
+        console.log('✔️  Columna fileData ya existe en product_files');
+      }
+
+      // Verificar si filePath es NOT NULL y, de ser así, permitir NULL
+      const filePathNullable = await pool.query(
+        `SELECT is_nullable FROM information_schema.columns 
+         WHERE table_name = 'product_files' AND column_name = 'filePath'`
+      );
+      if (filePathNullable.rows.length > 0 && filePathNullable.rows[0].is_nullable === 'NO') {
+        console.log('🛠️  Migración: permitiendo NULL en filePath de product_files');
+        await pool.query('ALTER TABLE product_files ALTER COLUMN "filePath" DROP NOT NULL');
+      } else {
+        console.log('✔️  Columna filePath ya permite NULL o no existe restricción');
+      }
+    } catch (mErr) {
+      console.error('⚠️  Error en migración ligera de esquema:', mErr.message);
+      // No impedir el arranque por un fallo menor de migración
     }
   },
 

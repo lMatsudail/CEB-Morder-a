@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const database = require('../models/database');
 const { auth, requirePatronista } = require('../middleware/auth');
+// Almacenamiento en BD: no usamos almacenamiento en disco aquí
 
 const router = express.Router();
 
@@ -268,61 +269,54 @@ router.post('/', auth, requirePatronista, async (req, res) => {
     const productId = result.rows[0].id;
     console.log('✅ Producto creado con ID:', productId);
 
-    // NO crear directorio - guardaremos en BD en lugar de disco
-    // const productDir = path.join(uploadsDir, String(productId));
-    // if (!fs.existsSync(productDir)) {
-    //   fs.mkdirSync(productDir, { recursive: true });
-    // }
+    // Guardar archivos directamente en BD (BYTEA) usando buffers de multer (Render sin disco persistente)
+    const filesFromMulter = req.files || {};
+    const toInsert = [];
 
-    // Guardar imágenes en la tabla product_files (en BD, no en disco)
-    if (req.files.images) {
-      for (const image of req.files.images) {
-        const timestamp = Date.now();
-        const randomStr = Math.random().toString(36).substring(2, 8);
-        const fileName = `img_${timestamp}_${randomStr}_${image.originalname}`;
-        
-        // Registrar en BD CON los datos del archivo en fileData
-        const fileQuery = `
-          INSERT INTO product_files ("productId", "fileName", "originalName", "fileType", "fileSize", "fileData")
-          VALUES ($1, $2, $3, $4, $5, $6)
-        `;
-        
-        await pool.query(fileQuery, [
+    const now = Date.now();
+    const sanitizeName = (name = '') => name.replace(/[^\w\-.]+/g, '_');
+
+    if (filesFromMulter.images && Array.isArray(filesFromMulter.images)) {
+      for (const file of filesFromMulter.images) {
+        toInsert.push({
           productId,
-          fileName,
-          image.originalname,
-          'image',
-          image.size,
-          image.buffer  // Guardar el buffer directamente en BYTEA
-        ]);
-        
-        console.log('✅ Imagen registrada en BD:', fileName);
+          fileName: `${now}-${Math.random().toString(36).slice(2,8)}-${sanitizeName(file.originalname)}`,
+          originalName: file.originalname,
+          fileType: 'image',
+          fileSize: file.size,
+          fileData: file.buffer
+        });
+      }
+    }
+    if (filesFromMulter.files && Array.isArray(filesFromMulter.files)) {
+      for (const file of filesFromMulter.files) {
+        toInsert.push({
+          productId,
+          fileName: `${now}-${Math.random().toString(36).slice(2,8)}-${sanitizeName(file.originalname)}`,
+          originalName: file.originalname,
+          fileType: 'pattern',
+          fileSize: file.size,
+          fileData: file.buffer
+        });
       }
     }
 
-    // Guardar archivos de patrones en la tabla product_files (en BD, no en disco)
-    if (req.files.files) {
-      for (const file of req.files.files) {
-        const timestamp = Date.now();
-        const randomStr = Math.random().toString(36).substring(2, 8);
-        const fileName = `pattern_${timestamp}_${randomStr}_${file.originalname}`;
-        
-        // Registrar en BD CON los datos del archivo en fileData
-        const fileQuery = `
-          INSERT INTO product_files ("productId", "fileName", "originalName", "fileType", "fileSize", "fileData")
-          VALUES ($1, $2, $3, $4, $5, $6)
-        `;
-        
-        await pool.query(fileQuery, [
-          productId,
-          fileName,
-          file.originalname,
-          'pattern',
-          file.size,
-          file.buffer  // Guardar el buffer directamente en BYTEA
+    if (toInsert.length > 0) {
+      const insertQuery = `
+        INSERT INTO product_files ("productId", "fileName", "originalName", "fileType", "fileSize", "fileData")
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING id
+      `;
+      for (const f of toInsert) {
+        const r = await pool.query(insertQuery, [
+          f.productId,
+          f.fileName,
+          f.originalName,
+          f.fileType,
+          f.fileSize,
+          f.fileData
         ]);
-        
-        console.log('✅ Patrón registrado en BD:', fileName);
+        console.log(`✅ Archivo registrado en BD: ${f.fileType} -> id ${r.rows[0]?.id}`);
       }
     }
 
