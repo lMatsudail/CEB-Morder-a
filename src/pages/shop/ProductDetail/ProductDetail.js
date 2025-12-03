@@ -128,10 +128,10 @@ const ProductDetail = () => {
           </div>
 
           {/* Miniaturas */}
-          {product.images && Array.isArray(product.images) && product.images.length > 1 && (
+          {product.files && Array.isArray(product.files) && product.files.filter(f => f.fileType === 'image').length > 1 && (
             <div className="product-thumbnails">
-              {product.images.map((image, index) => {
-                const imageUrl = image.url || `${process.env.REACT_APP_API_URL}/files/image/${product.id}/${image.id}`;
+              {product.files.filter(f => f.fileType === 'image').map((image, index) => {
+                const imageUrl = `/api/files/image/${product.id}/${image.id}`;
                 return (
                   <div
                     key={index}
