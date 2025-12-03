@@ -235,10 +235,22 @@ async function startServer() {
 
     // ========== SERVIR FRONTEND REACT ==========
     // Servir los archivos estáticos del build de React
-    // Nota: Usando 'build-temp' porque .gitignore ignora 'build/'
-    const buildPath = path.join(__dirname, '..', '..', 'build-temp');
+    // React se compila durante npm install via postinstall.js
+    const buildPath = path.join(__dirname, '..', '..', 'build');
     console.log(`📂 Sirviendo archivos estáticos desde: ${buildPath}`);
     console.log(`📂 ¿Existe build? ${require('fs').existsSync(buildPath)}`);
+    
+    // Si build no existe, intenta compilar localmente
+    if (!require('fs').existsSync(buildPath)) {
+      console.log('⚠️  Carpeta build no encontrada, intentando compilar...');
+      try {
+        require('child_process').execSync('npm run build', { stdio: 'inherit' });
+        console.log('✅ React compilado exitosamente');
+      } catch (err) {
+        console.error('❌ Error compilando React, continuando sin build');
+      }
+    }
+    
     app.use(express.static(buildPath));
     
     // Para rutas que no son /api/*, servir index.html (React Router maneja el resto)
