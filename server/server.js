@@ -10,9 +10,6 @@ const db = require('./models/database');
 const app = express();
 const PORT = config.PORT;
 
-// buildPath se usa más adelante para servir React
-const buildPath = path.join(__dirname, '..', 'build');
-
 // Configuración de seguridad y límites
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
@@ -238,6 +235,9 @@ async function startServer() {
 
     // ========== SERVIR FRONTEND REACT ==========
     // Servir los archivos estáticos del build de React
+    const buildPath = path.join(__dirname, '..', 'build');
+    console.log(`📂 Sirviendo archivos estáticos desde: ${buildPath}`);
+    console.log(`📂 ¿Existe build? ${require('fs').existsSync(buildPath)}`);
     app.use(express.static(buildPath));
     
     // Para rutas que no son /api/*, servir index.html (React Router maneja el resto)
@@ -247,6 +247,7 @@ async function startServer() {
         return res.status(404).json({ message: 'Ruta no encontrada' });
       }
       // Para cualquier otra ruta, servir index.html (React Router lo maneja)
+      console.log(`🔄 Sirviendo index.html para ruta: ${req.path}`);
       res.sendFile(path.join(buildPath, 'index.html'));
     });
     
