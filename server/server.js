@@ -4,6 +4,7 @@ const path = require('path');
 const compression = require('compression');
 const helmet = require('helmet');
 const multer = require('multer');
+const fs = require('fs');
 const config = require('./config');
 const db = require('./models/database');
 const setupReactServing = require('./serve-react');
