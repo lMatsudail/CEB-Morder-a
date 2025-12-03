@@ -40,7 +40,6 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
   const [images, setImages] = useState([]);
   const [patternFiles, setPatternFiles] = useState([]);
   const [errors, setErrors] = useState({});
-  const [submitAttempted, setSubmitAttempted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Cargar datos del producto si se está editando
@@ -653,7 +652,7 @@ const AddProductForm = ({ onProductAdded, onCancel, productToEdit = null }) => {
           </div>
         )}
 
-        {submitAttempted && Object.keys(errors).length > 0 && !errors.submit && (
+        {Object.keys(errors).length > 0 && !errors.submit && (
           <div className="error-message validation-errors error-before-button">
             <strong>⚠️ Faltan campos obligatorios para guardar:</strong>
             <ul style={{ marginTop: '10px', marginLeft: '20px' }}>
