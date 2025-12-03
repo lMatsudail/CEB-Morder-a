@@ -550,7 +550,7 @@ router.put('/:id', auth, requirePatronista, async (req, res) => {
           productId,
           `pattern_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           file.originalname,
-          file.mimetype,
+          'pattern',
           file.size,
           file.buffer
         ]);
@@ -580,7 +580,7 @@ router.put('/:id', auth, requirePatronista, async (req, res) => {
               productId,
               `external_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
               url,
-              'image/external',
+              'image',
               url,
               0
             ]);
