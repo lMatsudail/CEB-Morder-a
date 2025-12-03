@@ -1,8 +1,7 @@
 import axios from 'axios';
+import { API_URL } from '../config/apiConfig';
 
 // Configurar baseURL para apuntar al backend correcto
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-
 const apiClient = axios.create({
   baseURL: API_URL,
   timeout: 10000,

@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import axios from 'axios';
+import { API_URL } from '../../../config/apiConfig';
 import './Checkout.css';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 const Checkout = () => {
   const [searchParams] = useSearchParams();
@@ -51,7 +50,7 @@ const Checkout = () => {
       try {
         const token = localStorage.getItem('token');
         const response = await axios.get(
-          `${API_URL}/api/payments/status/${orderId}`,
+          `${API_URL}/payments/status/${orderId}`,
           {
             headers: {
               'Authorization': `Bearer ${token}`

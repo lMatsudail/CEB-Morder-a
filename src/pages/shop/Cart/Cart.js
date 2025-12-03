@@ -3,9 +3,8 @@ import { useCart } from '../../../context/CartContext';
 import { useAuth } from '../../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from '../../../config/apiConfig';
 import './Cart.css';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 const Cart = () => {
   const { cartItems, removeFromCart, updateQuantity, clearCart, getCartTotal } = useCart();
@@ -67,7 +66,7 @@ const Cart = () => {
       const methodToSend = selectedMethod || 'CARD';
 
       const response = await axios.post(
-        `${API_URL}/api/payments/create-order`,
+        `${API_URL}/payments/create-order`,
         { items, paymentMethods: [methodToSend] },
         {
           headers: {

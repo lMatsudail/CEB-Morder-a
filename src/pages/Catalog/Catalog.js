@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ProductModal from '../../components/ProductModal';
 import { formatSizes } from '../../utils/formatUtils';
 import { getFirstImageUrl } from '../../utils/imageUtils';
+import { API_URL } from '../../config/apiConfig';
 import './Catalog.css';
 
 const Catalog = () => {
@@ -30,8 +31,7 @@ const Catalog = () => {
   const fetchCatalog = async () => {
     try {
       setLoading(true);
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-      const response = await fetch(`${apiUrl}/api/catalog/products`);
+      const response = await fetch(`${API_URL}/catalog/products`);
       
       if (!response.ok) {
         throw new Error('Error obteniendo catálogo');
