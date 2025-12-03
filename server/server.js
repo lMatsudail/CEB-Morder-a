@@ -4,26 +4,14 @@ const path = require('path');
 const compression = require('compression');
 const helmet = require('helmet');
 const multer = require('multer');
-const fs = require('fs');
-const { execSync } = require('child_process');
 const config = require('./config');
 const db = require('./models/database');
 
 const app = express();
 const PORT = config.PORT;
 
-// Si la carpeta build no existe (ej: en Render free tier), compilar React
+// buildPath se usa más adelante para servir React
 const buildPath = path.join(__dirname, '..', 'build');
-if (!fs.existsSync(buildPath)) {
-  console.log('📦 Compilando React build...');
-  try {
-    execSync('npm run build', { stdio: 'inherit', cwd: path.join(__dirname, '..') });
-    console.log('✅ React build compilado exitosamente');
-  } catch (err) {
-    console.error('❌ Error compilando React build:', err.message);
-    console.log('⚠️  Continuando sin carpeta build...');
-  }
-}
 
 // Configuración de seguridad y límites
 app.use(helmet({

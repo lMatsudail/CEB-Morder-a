@@ -38,6 +38,7 @@
     "eject": "react-scripts eject",
     "server": "nodemon server/server.js",
     "dev": "concurrently \"npm run server\" \"npm start\"",
+    "postinstall": "node postinstall.js",
     "security-check": "npm audit --audit-level critical",
     "security-summary": "npm audit | head -20"
   },
