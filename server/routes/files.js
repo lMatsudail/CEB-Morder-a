@@ -6,6 +6,118 @@ const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 
+// GET /api/files/image/:productId/:fileId - Servir imagen desde BD (público)
+router.get('/image/:productId/:fileId', async (req, res) => {
+  try {
+    const { productId, fileId } = req.params;
+    const pool = database.getPool();
+
+    // Obtener el archivo desde la BD
+    const fileQuery = await pool.query(
+      'SELECT * FROM product_files WHERE id = $1 AND "productId" = $2',
+      [fileId, productId]
+    );
+
+    if (fileQuery.rows.length === 0) {
+      return res.status(404).json({ message: 'Archivo no encontrado' });
+    }
+
+    const file = fileQuery.rows[0];
+
+    // Si el archivo tiene datos en fileData, servir desde BD
+    if (file.fileData) {
+      res.setHeader('Content-Type', getMimeType(file.fileType, file.originalName));
+      res.setHeader('Content-Disposition', `inline; filename="${file.fileName}"`);
+      res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache por 1 año
+      return res.send(file.fileData);
+    }
+
+    // Si no tiene datos pero tiene filePath (archivos antiguos), intentar desde disco
+    if (file.filePath) {
+      const filePath = path.join(__dirname, '..', 'uploads', file.filePath);
+      try {
+        await fs.access(filePath);
+        res.setHeader('Content-Type', getMimeType(file.fileType, file.originalName));
+        res.setHeader('Content-Disposition', `inline; filename="${file.fileName}"`);
+        res.sendFile(filePath);
+      } catch (error) {
+        return res.status(404).json({ message: 'Archivo no encontrado en el servidor' });
+      }
+    }
+
+    return res.status(404).json({ message: 'Archivo no tiene datos' });
+
+  } catch (error) {
+    console.error('Error en GET /files/image/:productId/:fileId:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// Función auxiliar para determinar MIME type
+function getMimeType(fileType, originalName) {
+  if (fileType === 'image') {
+    if (originalName.endsWith('.webp')) return 'image/webp';
+    if (originalName.endsWith('.png')) return 'image/png';
+    if (originalName.endsWith('.jpg') || originalName.endsWith('.jpeg')) return 'image/jpeg';
+    if (originalName.endsWith('.gif')) return 'image/gif';
+    return 'image/jpeg';
+  }
+  if (fileType === 'pattern') {
+    if (originalName.endsWith('.pdf')) return 'application/pdf';
+    if (originalName.endsWith('.zip')) return 'application/zip';
+    if (originalName.endsWith('.rar')) return 'application/x-rar-compressed';
+    return 'application/octet-stream';
+  }
+  return 'application/octet-stream';
+}
+
+// GET /api/files/pattern/:productId/:fileId - Servir patrón/molde desde BD (público)
+router.get('/pattern/:productId/:fileId', async (req, res) => {
+  try {
+    const { productId, fileId } = req.params;
+    const pool = database.getPool();
+
+    // Obtener el archivo desde la BD
+    const fileQuery = await pool.query(
+      'SELECT * FROM product_files WHERE id = $1 AND "productId" = $2 AND "fileType" = $3',
+      [fileId, productId, 'pattern']
+    );
+
+    if (fileQuery.rows.length === 0) {
+      return res.status(404).json({ message: 'Patrón no encontrado' });
+    }
+
+    const file = fileQuery.rows[0];
+
+    // Si el archivo tiene datos en fileData, servir desde BD
+    if (file.fileData) {
+      res.setHeader('Content-Type', getMimeType(file.fileType, file.originalName));
+      res.setHeader('Content-Disposition', `attachment; filename="${file.fileName}"`);
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      return res.send(file.fileData);
+    }
+
+    // Si no tiene datos pero tiene filePath (archivos antiguos), intentar desde disco
+    if (file.filePath) {
+      const filePath = path.join(__dirname, '..', 'uploads', file.filePath);
+      try {
+        await fs.access(filePath);
+        res.setHeader('Content-Type', getMimeType(file.fileType, file.originalName));
+        res.setHeader('Content-Disposition', `attachment; filename="${file.fileName}"`);
+        res.download(filePath);
+      } catch (error) {
+        return res.status(404).json({ message: 'Patrón no encontrado en el servidor' });
+      }
+    }
+
+    return res.status(404).json({ message: 'Patrón no tiene datos' });
+
+  } catch (error) {
+    console.error('Error en GET /files/pattern/:productId/:fileId:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
 // GET /api/files/download/:fileId - Descargar archivo (solo si el pago está confirmado)
 router.get('/download/:fileId', auth, async (req, res) => {
   try {

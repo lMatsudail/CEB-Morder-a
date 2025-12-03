@@ -95,9 +95,10 @@ const database = {
         "productId" INTEGER NOT NULL,
         "fileName" VARCHAR(255) NOT NULL,
         "originalName" VARCHAR(255) NOT NULL,
-        "filePath" VARCHAR(500) NOT NULL,
+        "filePath" VARCHAR(500),
         "fileType" VARCHAR(50) CHECK("fileType" IN ('image', 'pattern', 'document')),
         "fileSize" INTEGER,
+        "fileData" BYTEA,
         "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY ("productId") REFERENCES products(id) ON DELETE CASCADE
       )`,

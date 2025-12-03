@@ -268,26 +268,22 @@ router.post('/', auth, requirePatronista, async (req, res) => {
     const productId = result.rows[0].id;
     console.log('✅ Producto creado con ID:', productId);
 
-    // Crear directorio para este producto
-    const productDir = path.join(uploadsDir, String(productId));
-    if (!fs.existsSync(productDir)) {
-      fs.mkdirSync(productDir, { recursive: true });
-    }
+    // NO crear directorio - guardaremos en BD en lugar de disco
+    // const productDir = path.join(uploadsDir, String(productId));
+    // if (!fs.existsSync(productDir)) {
+    //   fs.mkdirSync(productDir, { recursive: true });
+    // }
 
-    // Guardar imágenes en la tabla product_files
+    // Guardar imágenes en la tabla product_files (en BD, no en disco)
     if (req.files.images) {
       for (const image of req.files.images) {
         const timestamp = Date.now();
         const randomStr = Math.random().toString(36).substring(2, 8);
         const fileName = `img_${timestamp}_${randomStr}_${image.originalname}`;
-        const filepath = path.join(productDir, fileName);
         
-        // Guardar en disco
-        fs.writeFileSync(filepath, image.buffer);
-        
-        // Registrar en BD
+        // Registrar en BD CON los datos del archivo en fileData
         const fileQuery = `
-          INSERT INTO product_files ("productId", "fileName", "originalName", "filePath", "fileType", "fileSize")
+          INSERT INTO product_files ("productId", "fileName", "originalName", "fileType", "fileSize", "fileData")
           VALUES ($1, $2, $3, $4, $5, $6)
         `;
         
@@ -295,29 +291,25 @@ router.post('/', auth, requirePatronista, async (req, res) => {
           productId,
           fileName,
           image.originalname,
-          `${productId}/${fileName}`,
           'image',
-          image.size
+          image.size,
+          image.buffer  // Guardar el buffer directamente en BYTEA
         ]);
         
-        console.log('✅ Imagen registrada:', fileName);
+        console.log('✅ Imagen registrada en BD:', fileName);
       }
     }
 
-    // Guardar archivos de patrones en la tabla product_files
+    // Guardar archivos de patrones en la tabla product_files (en BD, no en disco)
     if (req.files.files) {
       for (const file of req.files.files) {
         const timestamp = Date.now();
         const randomStr = Math.random().toString(36).substring(2, 8);
         const fileName = `pattern_${timestamp}_${randomStr}_${file.originalname}`;
-        const filepath = path.join(productDir, fileName);
         
-        // Guardar en disco
-        fs.writeFileSync(filepath, file.buffer);
-        
-        // Registrar en BD
+        // Registrar en BD CON los datos del archivo en fileData
         const fileQuery = `
-          INSERT INTO product_files ("productId", "fileName", "originalName", "filePath", "fileType", "fileSize")
+          INSERT INTO product_files ("productId", "fileName", "originalName", "fileType", "fileSize", "fileData")
           VALUES ($1, $2, $3, $4, $5, $6)
         `;
         
@@ -325,12 +317,12 @@ router.post('/', auth, requirePatronista, async (req, res) => {
           productId,
           fileName,
           file.originalname,
-          `${productId}/${fileName}`,
           'pattern',
-          file.size
+          file.size,
+          file.buffer  // Guardar el buffer directamente en BYTEA
         ]);
         
-        console.log('✅ Archivo de patrón registrado:', fileName);
+        console.log('✅ Patrón registrado en BD:', fileName);
       }
     }
 
