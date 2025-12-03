@@ -529,7 +529,7 @@ router.put('/:id', auth, requirePatronista, async (req, res) => {
           productId,
           `image_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           file.originalname,
-          file.mimetype,
+          'image',
           file.size,
           file.buffer
         ]);
