@@ -1,5 +1,12 @@
-routes:
-  - type: "rewrite"
-    source: "/:path(.*)"
-    destination: "/index.html"
-    statusCode: 200
+services:
+  - type: web
+    name: ceb-molderia-api
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: node server/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
