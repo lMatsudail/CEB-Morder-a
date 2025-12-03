@@ -8,9 +8,9 @@ router.get('/products', async (req, res) => {
   try {
     const pool = database.getPool();
 
-    // Query para obtener productos activos con información del patronista
+    // Query para obtener productos activos con sus archivos agregados como JSON
     const query = `
-      SELECT
+      SELECT 
         p.id,
         p.title,
         p.description,
@@ -19,15 +19,27 @@ router.get('/products', async (req, res) => {
         p.difficulty,
         p.sizes,
         p."createdAt",
-        pf."filePath" as imageurl,
         u."firstName" as patronistafirstname,
         u."lastName" as patronistalastname,
-        c.name as categoryname
+        c.name as categoryname,
+        COALESCE(json_agg(
+          json_build_object(
+            'id', pf.id,
+            'fileName', pf."fileName",
+            'originalName', pf."originalName",
+            'filePath', pf."filePath",
+            'fileType', pf."fileType",
+            'fileSize', pf."fileSize",
+            'createdAt', pf."createdAt"
+          ) 
+          ORDER BY pf.id ASC
+        ) FILTER (WHERE pf.id IS NOT NULL), '[]'::json) as files
       FROM products p
       LEFT JOIN users u ON p."patronistaId" = u.id
       LEFT JOIN categories c ON p."categoryId" = c.id
-      LEFT JOIN product_files pf ON p.id = pf."productId" AND pf."fileType" = 'image'
+      LEFT JOIN product_files pf ON p.id = pf."productId"
       WHERE p.active = true
+      GROUP BY p.id, u."firstName", u."lastName", c.name
       ORDER BY p."createdAt" DESC
     `;
 
@@ -51,7 +63,7 @@ router.get('/products', async (req, res) => {
           return product.sizes ? product.sizes.split(',').map(s => s.trim()) : [];
         }
       })(),
-      imageUrl: product.imageurl,
+      files: product.files || [],
       patronista: `${product.patronistafirstname || ''} ${product.patronistalastname || ''}`.trim(),
       category: product.categoryname,
       createdAt: product.createdAt
@@ -78,17 +90,29 @@ router.get('/products/:id', async (req, res) => {
     const pool = database.getPool();
 
     const query = `
-      SELECT
+      SELECT 
         p.*,
-        pf."filePath" as imageurl,
         u."firstName" as patronistafirstname,
         u."lastName" as patronistalastname,
-        c.name as categoryname
+        c.name as categoryname,
+        COALESCE(json_agg(
+          json_build_object(
+            'id', pf.id,
+            'fileName', pf."fileName",
+            'originalName', pf."originalName",
+            'filePath', pf."filePath",
+            'fileType', pf."fileType",
+            'fileSize', pf."fileSize",
+            'createdAt', pf."createdAt"
+          ) 
+          ORDER BY pf.id ASC
+        ) FILTER (WHERE pf.id IS NOT NULL), '[]'::json) as files
       FROM products p
       LEFT JOIN users u ON p."patronistaId" = u.id
       LEFT JOIN categories c ON p."categoryId" = c.id
-      LEFT JOIN product_files pf ON p.id = pf."productId" AND pf."fileType" = 'image'
+      LEFT JOIN product_files pf ON p.id = pf."productId"
       WHERE p.id = $1 AND p.active = true
+      GROUP BY p.id, u."firstName", u."lastName", c.name
     `;
 
     const result = await pool.query(query, [id]);
@@ -118,7 +142,7 @@ router.get('/products/:id', async (req, res) => {
           return product.sizes ? product.sizes.split(',').map(s => s.trim()) : [];
         }
       })(),
-      imageUrl: product.imageurl,
+      files: product.files || [],
       patronista: `${product.patronistafirstname || ''} ${product.patronistalastname || ''}`.trim(),
       category: product.categoryname,
       createdAt: product.createdAt
