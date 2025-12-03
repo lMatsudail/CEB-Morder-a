@@ -379,6 +379,153 @@ router.post('/', auth, requirePatronista, async (req, res) => {
   }
 });
 
+// Obtener producto por ID (público) - DEBE IR ANTES DE /files
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'ID de producto inválido' });
+    }
+
+    const pool = database.getPool();
+    
+    const query = `
+      SELECT 
+        p.*,
+        u."firstName" as "userFirstName",
+        u."lastName" as "userLastName",
+        c.name as "categoryName"
+      FROM products p
+      LEFT JOIN users u ON p."patronistaId" = u.id
+      LEFT JOIN categories c ON p."categoryId" = c.id
+      WHERE p.id = $1 AND p.active = true
+    `;
+
+    const result = await pool.query(query, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Producto no encontrado' });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error('Error en GET /products/:id:', error);
+    res.status(500).json({ message: 'Error interno del servidor' });
+  }
+});
+
+// Actualizar producto (solo patronista propietario)
+router.put('/:id', auth, requirePatronista, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+    const { title, description, category, difficulty, sizes, basicPrice, trainingPrice, active } = req.body;
+
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'ID de producto inválido' });
+    }
+
+    const pool = database.getPool();
+
+    // Verificar que el producto pertenece al patronista
+    const checkQuery = 'SELECT "patronistaId" FROM products WHERE id = $1';
+    const checkResult = await pool.query(checkQuery, [id]);
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Producto no encontrado' });
+    }
+
+    if (checkResult.rows[0].patronistaId !== userId) {
+      return res.status(403).json({ message: 'No tienes permisos para actualizar este producto' });
+    }
+
+    // Actualizar producto
+    const updateQuery = `
+      UPDATE products 
+      SET 
+        title = COALESCE($2, title),
+        description = COALESCE($3, description),
+        "categoryId" = COALESCE($4, "categoryId"),
+        difficulty = COALESCE($5, difficulty),
+        sizes = COALESCE($6, sizes),
+        "basicPrice" = COALESCE($7, "basicPrice"),
+        "trainingPrice" = COALESCE($8, "trainingPrice"),
+        active = COALESCE($9, active),
+        "updatedAt" = NOW()
+      WHERE id = $1
+      RETURNING *
+    `;
+
+    const result = await pool.query(updateQuery, [
+      id,
+      title,
+      description,
+      category,
+      difficulty,
+      sizes ? JSON.stringify(sizes) : null,
+      basicPrice,
+      trainingPrice,
+      active
+    ]);
+
+    res.json({
+      message: 'Producto actualizado exitosamente',
+      product: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error('❌ Error en PUT /products/:id:', error.message);
+    res.status(500).json({ 
+      message: 'Error interno del servidor', 
+      error: error.message
+    });
+  }
+});
+
+// Eliminar producto (solo patronista propietario)
+router.delete('/:id', auth, requirePatronista, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'ID de producto inválido' });
+    }
+
+    const pool = database.getPool();
+
+    // Verificar que el producto pertenece al patronista
+    const checkQuery = 'SELECT "patronistaId" FROM products WHERE id = $1';
+    const checkResult = await pool.query(checkQuery, [id]);
+
+    if (checkResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Producto no encontrado' });
+    }
+
+    if (checkResult.rows[0].patronistaId !== userId) {
+      return res.status(403).json({ message: 'No tienes permisos para eliminar este producto' });
+    }
+
+    // Eliminar producto (CASCADE eliminará archivos relacionados)
+    const deleteQuery = 'DELETE FROM products WHERE id = $1 RETURNING id';
+    const result = await pool.query(deleteQuery, [id]);
+
+    res.json({
+      message: 'Producto eliminado exitosamente',
+      productId: result.rows[0].id
+    });
+
+  } catch (error) {
+    console.error('❌ Error en DELETE /products/:id:', error.message);
+    res.status(500).json({ 
+      message: 'Error interno del servidor', 
+      error: error.message
+    });
+  }
+});
+
 // Descargar archivo de producto
 router.get('/files/:productId/:fileName', async (req, res) => {
   try {
@@ -411,6 +558,8 @@ console.log('   - GET /');
 console.log('   - GET /test-auth');
 console.log('   - GET /my-products ⭐');
 console.log('   - GET /:id');
+console.log('   - PUT /:id');
+console.log('   - DELETE /:id');
 console.log('   - GET /files/:productId/:fileName (Descargar archivos)');
 console.log('   - POST /');
 

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 const CartContext = createContext();
 
@@ -13,6 +14,8 @@ export const useCart = () => {
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const { user } = useAuth();
+  const [previousUser, setPreviousUser] = useState(null);
 
   // Cargar carrito desde localStorage al iniciar
   useEffect(() => {
@@ -21,6 +24,16 @@ export const CartProvider = ({ children }) => {
       setCartItems(JSON.parse(savedCart));
     }
   }, []);
+
+  // Limpiar carrito cuando cambia de usuario
+  useEffect(() => {
+    if (previousUser && user?.id !== previousUser?.id) {
+      // Usuario cambió - limpiar carrito
+      setCartItems([]);
+      localStorage.removeItem('cart');
+    }
+    setPreviousUser(user);
+  }, [user, previousUser]);
 
   // Guardar carrito en localStorage cuando cambie
   useEffect(() => {
